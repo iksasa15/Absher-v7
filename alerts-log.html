@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رَصْد - سجل التنبيهات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --light: #f1f5f9;
+            --dark: #020617;
+            --border: rgba(148, 163, 184, 0.2);
+            --card-bg: rgba(30, 41, 59, 0.8);
+            --hover: rgba(59, 130, 246, 0.1);
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--light);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            height: 70px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: var(--warning);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 15px 10px 40px;
+            font-size: 14px;
+            color: var(--light);
+            width: 280px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .header-btn:hover {
+            background-color: var(--hover);
+            border-color: var(--accent);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: rgba(241, 245, 249, 0.6);
+        }
+
+        .filter-select {
+            background-color: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--light);
+            font-size: 13px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: var(--secondary);
+            color: var(--light);
+            font-size: 13px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background-color: var(--hover);
+            border-color: var(--accent);
+        }
+
+        .filter-btn.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-mini {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-mini-info h4 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .stat-mini-info p {
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.6);
+        }
+
+        .stat-mini-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-mini-icon.red {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .stat-mini-icon.orange {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .stat-mini-icon.green {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .stat-mini-icon.blue {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+        }
+
+        /* Alerts Table */
+        .alerts-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .alerts-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .alerts-count {
+            font-size: 13px;
+            color: rgba(241, 245, 249, 0.6);
+        }
+
+        .alerts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .alerts-table th,
+        .alerts-table td {
+            padding: 15px 20px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .alerts-table th {
+            background-color: rgba(15, 23, 42, 0.5);
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(241, 245, 249, 0.7);
+            text-transform: uppercase;
+        }
+
+        .alerts-table tr:hover {
+            background-color: var(--hover);
+        }
+
+        .alerts-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .alert-severity {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .severity-high {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .severity-medium {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .severity-low {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .alert-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .status-resolved {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .status-investigating {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+        }
+
+        .status-pending {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .alert-type {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-type-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alert-type-icon.threat {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .alert-type-icon.suspicious {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .alert-type-icon.drone {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+        }
+
+        .alert-type-icon.system {
+            background-color: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .alert-action-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: none;
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .alert-action-btn:hover {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: rgba(241, 245, 249, 0.6);
+        }
+
+        .pagination-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: transparent;
+            color: var(--light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover {
+            background-color: var(--hover);
+            border-color: var(--accent);
+        }
+
+        .page-btn.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 900px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filter-bar {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="header-right">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                <span>العودة للوحة التحكم</span>
+            </a>
+            <div class="page-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>سجل التنبيهات</span>
+            </div>
+        </div>
+        <div class="header-left">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="البحث في التنبيهات...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <button class="header-btn" title="تصدير">
+                <i class="fas fa-download"></i>
+            </button>
+            <button class="header-btn" title="تحديث">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-mini">
+                <div class="stat-mini-info">
+                    <h4>47</h4>
+                    <p>إجمالي التنبيهات اليوم</p>
+                </div>
+                <div class="stat-mini-icon blue">
+                    <i class="fas fa-bell"></i>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-info">
+                    <h4>8</h4>
+                    <p>تنبيهات عالية الخطورة</p>
+                </div>
+                <div class="stat-mini-icon red">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-info">
+                    <h4>15</h4>
+                    <p>قيد المعالجة</p>
+                </div>
+                <div class="stat-mini-icon orange">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            <div class="stat-mini">
+                <div class="stat-mini-info">
+                    <h4>24</h4>
+                    <p>تم حلها</p>
+                </div>
+                <div class="stat-mini-icon green">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <span class="filter-label">الخطورة:</span>
+                <button class="filter-btn active">الكل</button>
+                <button class="filter-btn"><i class="fas fa-circle" style="color: var(--danger); font-size: 8px;"></i>
+                    عالية</button>
+                <button class="filter-btn"><i class="fas fa-circle" style="color: var(--warning); font-size: 8px;"></i>
+                    متوسطة</button>
+                <button class="filter-btn"><i class="fas fa-circle" style="color: var(--success); font-size: 8px;"></i>
+                    منخفضة</button>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">الحالة:</span>
+                <select class="filter-select">
+                    <option>جميع الحالات</option>
+                    <option>تم الحل</option>
+                    <option>قيد التحقيق</option>
+                    <option>قيد الانتظار</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">التاريخ:</span>
+                <select class="filter-select">
+                    <option>اليوم</option>
+                    <option>آخر 7 أيام</option>
+                    <option>آخر 30 يوم</option>
+                    <option>الكل</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Alerts Table -->
+        <div class="alerts-card">
+            <div class="alerts-header">
+                <span class="alerts-title">سجل التنبيهات</span>
+                <span class="alerts-count">عرض 1-10 من 47 تنبيه</span>
+            </div>
+            <table class="alerts-table">
+                <thead>
+                    <tr>
+                        <th>النوع</th>
+                        <th>الوصف</th>
+                        <th>الموقع</th>
+                        <th>المصدر</th>
+                        <th>الخطورة</th>
+                        <th>الحالة</th>
+                        <th>الوقت</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="alert-type">
+                                <div class="alert-type-icon threat"><i class="fas fa-gun"></i></div>
+                                <span>تهديد</span>
+                            </div>
+                        </td>
+                        <td>رصد شخص يحمل سلاح ناري</td>
+                        <td>القطاع الشرقي - بوابة 3</td>
+                        <td>طائرة #1</td>
+                        <td><span class="alert-severity severity-high"><i class="fas fa-circle"></i> عالية</span></td>
+                        <td><span class="alert-status status-investigating"><i class="fas fa-search"></i> قيد
+                                التحقيق</span></td>
+                        <td>منذ 5 دقائق</td>
+                        <td>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                <button class="alert-action-btn" title="تحديث"><i class="fas fa-edit"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="alert-type">
+                                <div class="alert-type-icon suspicious"><i class="fas fa-suitcase"></i></div>
+                                <span>مشبوه</span>
+                            </div>
+                        </td>
+                        <td>حقيبة متروكة في المنطقة</td>
+                        <td>القطاع الشمالي - ساحة الانتظار</td>
+                        <td>طائرة #2</td>
+                        <td><span class="alert-severity severity-medium"><i class="fas fa-circle"></i> متوسطة</span>
+                        </td>
+                        <td><span class="alert-status status-pending"><i class="fas fa-clock"></i> قيد الانتظار</span>
+                        </td>
+                        <td>منذ 12 دقيقة</td>
+                        <td>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                <button class="alert-action-btn" title="تحديث"><i class="fas fa-edit"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="alert-type">
+                                <div class="alert-type-icon drone"><i class="fas fa-drone"></i></div>
+                                <span>درون دخيل</span>
+                            </div>
+                        </td>
+                        <td>رصد درون غير مصرح به</td>
+                        <td>القطاع الغربي - الحدود</td>
+                        <td>طائرة #4</td>
+                        <td><span class="alert-severity severity-high"><i class="fas fa-circle"></i> عالية</span></td>
+                        <td><span class="alert-status status-resolved"><i class="fas fa-check"></i> تم الحل</span></td>
+                        <td>منذ 25 دقيقة</td>
+                        <td>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                <button class="alert-action-btn" title="تحديث"><i class="fas fa-edit"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="alert-type">
+                                <div class="alert-type-icon threat"><i class="fas fa-user-secret"></i></div>
+                                <span>هوية مشبوهة</span>
+                            </div>
+                        </td>
+                        <td>تطابق مع قائمة المطلوبين 89%</td>
+                        <td>المدخل الرئيسي</td>
+                        <td>طائرة #1</td>
+                        <td><span class="alert-severity severity-medium"><i class="fas fa-circle"></i> متوسطة</span>
+                        </td>
+                        <td><span class="alert-status status-investigating"><i class="fas fa-search"></i> قيد
+                                التحقيق</span></td>
+                        <td>منذ 35 دقيقة</td>
+                        <td>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                <button class="alert-action-btn" title="تحديث"><i class="fas fa-edit"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="alert-type">
+                                <div class="alert-type-icon suspicious"><i class="fas fa-car"></i></div>
+                                <span>مركبة</span>
+                            </div>
+                        </td>
+                        <td>مركبة غير مصرح لها</td>
+                        <td>مواقف الشمالية</td>
+                        <td>طائرة #6</td>
+                        <td><span class="alert-severity severity-low"><i class="fas fa-circle"></i> منخفضة</span></td>
+                        <td><span class="alert-status status-resolved"><i class="fas fa-check"></i> تم الحل</span></td>
+                        <td>منذ 45 دقيقة</td>
+                        <td>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                <button class="alert-action-btn" title="تحديث"><i class="fas fa-edit"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="alert-type">
+                                <div class="alert-type-icon system"><i class="fas fa-bolt"></i></div>
+                                <span>نظام</span>
+                            </div>
+                        </td>
+                        <td>انقطاع اتصال مؤقت</td>
+                        <td>طائرة #5</td>
+                        <td>النظام</td>
+                        <td><span class="alert-severity severity-low"><i class="fas fa-circle"></i> منخفضة</span></td>
+                        <td><span class="alert-status status-resolved"><i class="fas fa-check"></i> تم الحل</span></td>
+                        <td>منذ ساعة</td>
+                        <td>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                <button class="alert-action-btn" title="تحديث"><i class="fas fa-edit"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="pagination">
+                <span class="pagination-info">عرض 1-10 من 47 تنبيه</span>
+                <div class="pagination-btns">
+                    <button class="page-btn" disabled><i class="fas fa-chevron-right"></i></button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">4</button>
+                    <button class="page-btn">5</button>
+                    <button class="page-btn"><i class="fas fa-chevron-left"></i></button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ========================================
+        // Active Filters State
+        // ========================================
+        let activeSeverityFilter = 'الكل';
+        let activeStatusFilter = 'جميع الحالات';
+
+        // ========================================
+        // Filter Function - Apply All Filters
+        // ========================================
+        function applyFilters() {
+            const searchQuery = document.querySelector('.search-input').value.toLowerCase();
+            let visibleCount = 0;
+
+            document.querySelectorAll('.alerts-table tbody tr').forEach(row => {
+                let showRow = true;
+
+                // Severity Filter
+                if (activeSeverityFilter !== 'الكل') {
+                    const severityCell = row.querySelector('.alert-severity');
+                    if (severityCell) {
+                        const severityText = severityCell.textContent.trim();
+                        if (!severityText.includes(activeSeverityFilter)) {
+                            showRow = false;
+                        }
+                    }
+                }
+
+                // Status Filter
+                if (showRow && activeStatusFilter !== 'جميع الحالات') {
+                    const statusCell = row.querySelector('.alert-status');
+                    if (statusCell) {
+                        const statusText = statusCell.textContent.trim();
+                        if (!statusText.includes(activeStatusFilter)) {
+                            showRow = false;
+                        }
+                    }
+                }
+
+                // Search Filter
+                if (showRow && searchQuery) {
+                    const text = row.textContent.toLowerCase();
+                    if (!text.includes(searchQuery)) {
+                        showRow = false;
+                    }
+                }
+
+                row.style.display = showRow ? '' : 'none';
+                if (showRow) visibleCount++;
+            });
+
+            // Update count
+            const countElement = document.querySelector('.alerts-count');
+            if (countElement) {
+                countElement.textContent = `عرض ${visibleCount} تنبيه`;
+            }
+        }
+
+        // ========================================
+        // Severity Filter Buttons
+        // ========================================
+        document.querySelectorAll('.filter-group:first-child .filter-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                // Update active state
+                this.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                // Get filter value
+                const text = this.textContent.trim();
+                activeSeverityFilter = text;
+
+                // Apply filters
+                applyFilters();
+
+                // Show feedback
+                if (typeof showToast === 'function') {
+                    if (text === 'الكل') {
+                        showToast('عرض جميع التنبيهات', 'info');
+                    } else {
+                        showToast(`تصفية: خطورة ${text}`, 'info');
+                    }
+                }
+            });
+        });
+
+        // ========================================
+        // Status Filter Select
+        // ========================================
+        document.querySelectorAll('.filter-select').forEach((select, index) => {
+            select.addEventListener('change', function () {
+                if (index === 0) { // Status filter
+                    activeStatusFilter = this.value;
+                }
+                applyFilters();
+
+                if (typeof showToast === 'function') {
+                    showToast(`تصفية: ${this.value}`, 'info');
+                }
+            });
+        });
+
+        // ========================================
+        // Pagination
+        // ========================================
+        document.querySelectorAll('.page-btn:not(:disabled)').forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (this.querySelector('i')) return; // Skip arrow buttons
+                document.querySelectorAll('.page-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ========================================
+        // Alert Action Buttons
+        // ========================================
+        document.querySelectorAll('.alert-action-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const title = this.getAttribute('title');
+                const row = this.closest('tr');
+                const desc = row.querySelector('td:nth-child(2)').textContent;
+
+                if (title === 'عرض') {
+                    if (typeof showModal === 'function') {
+                        showModal({
+                            title: 'تفاصيل التنبيه',
+                            icon: 'fa-exclamation-triangle',
+                            iconColor: 'var(--warning)',
+                            content: `
+                                <div style="margin-bottom: 15px;">
+                                    <strong>الوصف:</strong><br>
+                                    ${desc}
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <strong>الموقع:</strong> ${row.querySelector('td:nth-child(3)').textContent}
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <strong>المصدر:</strong> ${row.querySelector('td:nth-child(4)').textContent}
+                                </div>
+                                <div>
+                                    <strong>الوقت:</strong> ${row.querySelector('td:nth-child(7)').textContent}
+                                </div>
+                            `,
+                            buttons: [
+                                { text: 'إغلاق', class: 'rasd-btn-cancel', action: 'close' }
+                            ]
+                        });
+                    } else {
+                        alert(`عرض تفاصيل التنبيه: ${desc}`);
+                    }
+                } else if (title === 'تحديث') {
+                    if (typeof showModal === 'function') {
+                        showModal({
+                            title: 'تحديث حالة التنبيه',
+                            icon: 'fa-edit',
+                            iconColor: 'var(--accent)',
+                            content: `
+                                <p style="margin-bottom: 15px;">${desc}</p>
+                                <label style="display: block; margin-bottom: 8px; font-size: 13px;">الحالة الجديدة:</label>
+                                <select id="newStatus" style="width: 100%; padding: 12px; background: rgba(15,23,42,0.5); border: 1px solid var(--border); border-radius: 8px; color: var(--light); font-family: 'Tajawal', sans-serif;">
+                                    <option>قيد التحقيق</option>
+                                    <option>قيد الانتظار</option>
+                                    <option>تم الحل</option>
+                                </select>
+                            `,
+                            buttons: [
+                                { text: 'إلغاء', class: 'rasd-btn-cancel', action: 'close' },
+                                { text: 'تحديث', class: 'rasd-btn-primary', action: 'update' }
+                            ],
+                            onAction: (action, modal) => {
+                                if (action === 'update') {
+                                    const newStatus = modal.querySelector('#newStatus').value;
+                                    const statusCell = row.querySelector('.alert-status');
+
+                                    // Update status visually
+                                    statusCell.className = 'alert-status';
+                                    if (newStatus === 'تم الحل') {
+                                        statusCell.classList.add('status-resolved');
+                                        statusCell.innerHTML = '<i class="fas fa-check"></i> تم الحل';
+                                    } else if (newStatus === 'قيد التحقيق') {
+                                        statusCell.classList.add('status-investigating');
+                                        statusCell.innerHTML = '<i class="fas fa-search"></i> قيد التحقيق';
+                                    } else {
+                                        statusCell.classList.add('status-pending');
+                                        statusCell.innerHTML = '<i class="fas fa-clock"></i> قيد الانتظار';
+                                    }
+
+                                    modal.remove();
+                                    if (typeof showToast === 'function') {
+                                        showToast('تم تحديث حالة التنبيه بنجاح', 'success');
+                                    }
+                                } else {
+                                    modal.remove();
+                                }
+                            }
+                        });
+                    } else {
+                        alert(`تحديث حالة التنبيه: ${desc}`);
+                    }
+                }
+            });
+        });
+
+        // ========================================
+        // Search
+        // ========================================
+        document.querySelector('.search-input').addEventListener('input', function () {
+            applyFilters();
+        });
+
+        // ========================================
+        // Export button
+        // ========================================
+        document.querySelector('.header-btn[title="تصدير"]').addEventListener('click', function () {
+            if (typeof showToast === 'function') {
+                showToast('جاري تصدير سجل التنبيهات...', 'info');
+                setTimeout(() => showToast('تم التصدير بنجاح!', 'success'), 1500);
+            } else {
+                alert('جاري تصدير سجل التنبيهات...');
+            }
+        });
+
+        // ========================================
+        // Refresh button
+        // ========================================
+        document.querySelector('.header-btn[title="تحديث"]').addEventListener('click', function () {
+            this.querySelector('i').classList.add('fa-spin');
+            setTimeout(() => {
+                this.querySelector('i').classList.remove('fa-spin');
+                if (typeof showToast === 'function') {
+                    showToast('تم تحديث البيانات بنجاح', 'success');
+                } else {
+                    alert('تم تحديث البيانات');
+                }
+            }, 1000);
+        });
+    </script>
+    <script src="js/rasd-utils.js"></script>
+</body>
+
+</html>

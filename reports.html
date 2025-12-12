@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رَصْد - التقارير</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --light: #f1f5f9;
+            --dark: #020617;
+            --border: rgba(148, 163, 184, 0.2);
+            --card-bg: rgba(30, 41, 59, 0.8);
+            --hover: rgba(59, 130, 246, 0.1);
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--light);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            height: 70px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: var(--accent);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .new-report-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .new-report-btn:hover {
+            background-color: var(--accent-dark);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Layout */
+        .page-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 25px;
+        }
+
+        /* Report Generator */
+        .report-generator {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .generator-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+        }
+
+        .generator-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .generator-title i {
+            color: var(--accent);
+        }
+
+        .generator-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: rgba(241, 245, 249, 0.7);
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .form-checkbox input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .form-checkbox span {
+            font-size: 13px;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .generate-btn:hover {
+            background-color: var(--accent-dark);
+        }
+
+        /* Reports List */
+        .reports-section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .section-tabs {
+            display: flex;
+            gap: 5px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--light);
+            font-size: 13px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            background-color: var(--hover);
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .report-card {
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .report-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .report-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .report-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .report-icon.pdf {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .report-icon.excel {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .report-icon.word {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+        }
+
+        .report-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .report-info p {
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            margin-top: 12px;
+        }
+
+        .report-date {
+            font-size: 11px;
+            color: rgba(241, 245, 249, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .report-size {
+            font-size: 11px;
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .report-action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .report-action-btn:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .report-action-btn.download:hover {
+            background-color: var(--success);
+            border-color: var(--success);
+        }
+
+        .report-action-btn.delete:hover {
+            background-color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        /* Quick Templates */
+        .templates-section {
+            margin-top: 25px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .templates-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .templates-title i {
+            color: var(--warning);
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .template-card {
+            padding: 15px;
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .template-card:hover {
+            border-color: var(--accent);
+            background-color: var(--hover);
+        }
+
+        .template-card i {
+            font-size: 24px;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .template-card h5 {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 1000px) {
+            .page-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="header-right">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                <span>العودة للوحة التحكم</span>
+            </a>
+            <div class="page-title">
+                <i class="fas fa-file-alt"></i>
+                <span>التقارير</span>
+            </div>
+        </div>
+        <div class="header-left">
+            <button class="new-report-btn"
+                onclick="document.querySelector('.generator-body').scrollIntoView({behavior: 'smooth'})">
+                <i class="fas fa-plus"></i>
+                إنشاء تقرير جديد
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-layout">
+            <!-- Report Generator -->
+            <aside class="report-generator">
+                <div class="generator-header">
+                    <h2 class="generator-title">
+                        <i class="fas fa-magic"></i>
+                        منشئ التقارير
+                    </h2>
+                </div>
+                <div class="generator-body">
+                    <div class="form-group">
+                        <label class="form-label">نوع التقرير</label>
+                        <select class="form-select">
+                            <option>تقرير يومي</option>
+                            <option>تقرير أسبوعي</option>
+                            <option>تقرير شهري</option>
+                            <option>تقرير مخصص</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">نطاق التاريخ</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="date" class="form-input">
+                            <input type="date" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">المحتوى</label>
+                        <div class="form-checkbox-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" checked>
+                                <span>إحصائيات الطائرات</span>
+                            </label>
+                            <label class="form-checkbox">
+                                <input type="checkbox" checked>
+                                <span>سجل التنبيهات</span>
+                            </label>
+                            <label class="form-checkbox">
+                                <input type="checkbox" checked>
+                                <span>تحليل التهديدات</span>
+                            </label>
+                            <label class="form-checkbox">
+                                <input type="checkbox">
+                                <span>ساعات الطيران</span>
+                            </label>
+                            <label class="form-checkbox">
+                                <input type="checkbox">
+                                <span>خرائط التغطية</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">صيغة التصدير</label>
+                        <select class="form-select" id="exportFormat">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                            <option value="word">Word</option>
+                        </select>
+                    </div>
+                    <button class="generate-btn" onclick="generateReport()">
+                        <i class="fas fa-file-export"></i>
+                        إنشاء التقرير
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Reports Section -->
+            <div>
+                <section class="reports-section">
+                    <div class="section-header">
+                        <h2 class="section-title">التقارير السابقة</h2>
+                        <div class="section-tabs">
+                            <button class="tab-btn active">الكل</button>
+                            <button class="tab-btn">اليوم</button>
+                            <button class="tab-btn">هذا الأسبوع</button>
+                            <button class="tab-btn">هذا الشهر</button>
+                        </div>
+                    </div>
+                    <div class="reports-grid">
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div class="report-icon pdf"><i class="fas fa-file-pdf"></i></div>
+                                <div class="report-info">
+                                    <h4>التقرير اليومي</h4>
+                                    <p>8 ديسمبر 2024</p>
+                                </div>
+                            </div>
+                            <div class="report-meta">
+                                <div>
+                                    <span class="report-date"><i class="fas fa-clock"></i> منذ ساعتين</span>
+                                    <span class="report-size">2.4 MB</span>
+                                </div>
+                                <div class="report-actions">
+                                    <button class="report-action-btn download" title="تحميل"><i
+                                            class="fas fa-download"></i></button>
+                                    <button class="report-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                    <button class="report-action-btn delete" title="حذف"><i
+                                            class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div class="report-icon excel"><i class="fas fa-file-excel"></i></div>
+                                <div class="report-info">
+                                    <h4>تقرير التنبيهات الأسبوعي</h4>
+                                    <p>1-7 ديسمبر 2024</p>
+                                </div>
+                            </div>
+                            <div class="report-meta">
+                                <div>
+                                    <span class="report-date"><i class="fas fa-clock"></i> أمس</span>
+                                    <span class="report-size">1.8 MB</span>
+                                </div>
+                                <div class="report-actions">
+                                    <button class="report-action-btn download" title="تحميل"><i
+                                            class="fas fa-download"></i></button>
+                                    <button class="report-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                    <button class="report-action-btn delete" title="حذف"><i
+                                            class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div class="report-icon pdf"><i class="fas fa-file-pdf"></i></div>
+                                <div class="report-info">
+                                    <h4>تقرير أداء الطائرات</h4>
+                                    <p>نوفمبر 2024</p>
+                                </div>
+                            </div>
+                            <div class="report-meta">
+                                <div>
+                                    <span class="report-date"><i class="fas fa-clock"></i> منذ 3 أيام</span>
+                                    <span class="report-size">5.2 MB</span>
+                                </div>
+                                <div class="report-actions">
+                                    <button class="report-action-btn download" title="تحميل"><i
+                                            class="fas fa-download"></i></button>
+                                    <button class="report-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                    <button class="report-action-btn delete" title="حذف"><i
+                                            class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div class="report-icon word"><i class="fas fa-file-word"></i></div>
+                                <div class="report-info">
+                                    <h4>تقرير تحليل التهديدات</h4>
+                                    <p>Q3 2024</p>
+                                </div>
+                            </div>
+                            <div class="report-meta">
+                                <div>
+                                    <span class="report-date"><i class="fas fa-clock"></i> منذ أسبوع</span>
+                                    <span class="report-size">3.7 MB</span>
+                                </div>
+                                <div class="report-actions">
+                                    <button class="report-action-btn download" title="تحميل"><i
+                                            class="fas fa-download"></i></button>
+                                    <button class="report-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                    <button class="report-action-btn delete" title="حذف"><i
+                                            class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div class="report-icon pdf"><i class="fas fa-file-pdf"></i></div>
+                                <div class="report-info">
+                                    <h4>التقرير الشهري</h4>
+                                    <p>نوفمبر 2024</p>
+                                </div>
+                            </div>
+                            <div class="report-meta">
+                                <div>
+                                    <span class="report-date"><i class="fas fa-clock"></i> منذ أسبوعين</span>
+                                    <span class="report-size">8.1 MB</span>
+                                </div>
+                                <div class="report-actions">
+                                    <button class="report-action-btn download" title="تحميل"><i
+                                            class="fas fa-download"></i></button>
+                                    <button class="report-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                    <button class="report-action-btn delete" title="حذف"><i
+                                            class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="report-card">
+                            <div class="report-header">
+                                <div class="report-icon excel"><i class="fas fa-file-excel"></i></div>
+                                <div class="report-info">
+                                    <h4>بيانات ساعات الطيران</h4>
+                                    <p>أكتوبر 2024</p>
+                                </div>
+                            </div>
+                            <div class="report-meta">
+                                <div>
+                                    <span class="report-date"><i class="fas fa-clock"></i> منذ شهر</span>
+                                    <span class="report-size">1.2 MB</span>
+                                </div>
+                                <div class="report-actions">
+                                    <button class="report-action-btn download" title="تحميل"><i
+                                            class="fas fa-download"></i></button>
+                                    <button class="report-action-btn" title="عرض"><i class="fas fa-eye"></i></button>
+                                    <button class="report-action-btn delete" title="حذف"><i
+                                            class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Templates -->
+                <section class="templates-section">
+                    <h3 class="templates-title">
+                        <i class="fas fa-star"></i>
+                        القوالب السريعة
+                    </h3>
+                    <div class="templates-grid">
+                        <div class="template-card" onclick="quickGenerate('daily')">
+                            <i class="fas fa-sun"></i>
+                            <h5>تقرير يومي سريع</h5>
+                        </div>
+                        <div class="template-card" onclick="quickGenerate('weekly')">
+                            <i class="fas fa-calendar-week"></i>
+                            <h5>تقرير أسبوعي سريع</h5>
+                        </div>
+                        <div class="template-card" onclick="quickGenerate('alerts')">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h5>تقرير التنبيهات</h5>
+                        </div>
+                        <div class="template-card" onclick="quickGenerate('performance')">
+                            <i class="fas fa-chart-line"></i>
+                            <h5>تقرير الأداء</h5>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Generate report
+        function generateReport() {
+            const format = document.getElementById('exportFormat').value;
+            const btn = document.querySelector('.generate-btn');
+            const originalContent = btn.innerHTML;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                alert(`تم إنشاء التقرير بصيغة ${format.toUpperCase()} بنجاح!`);
+            }, 2000);
+        }
+
+        // Quick generate
+        function quickGenerate(type) {
+            const types = {
+                'daily': 'التقرير اليومي',
+                'weekly': 'التقرير الأسبوعي',
+                'alerts': 'تقرير التنبيهات',
+                'performance': 'تقرير الأداء'
+            };
+            alert(`جاري إنشاء ${types[type]}...`);
+        }
+
+        // Tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Report actions
+        document.querySelectorAll('.report-action-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const title = this.getAttribute('title');
+                const card = this.closest('.report-card');
+                const reportName = card.querySelector('.report-info h4').textContent;
+
+                if (title === 'تحميل') {
+                    alert(`جاري تحميل "${reportName}"...`);
+                } else if (title === 'عرض') {
+                    alert(`جاري فتح "${reportName}"...`);
+                } else if (title === 'حذف') {
+                    if (confirm(`هل تريد حذف "${reportName}"؟`)) {
+                        card.style.opacity = '0';
+                        setTimeout(() => card.remove(), 300);
+                    }
+                }
+            });
+        });
+    </script>
+    <script src="js/rasd-utils.js"></script>
+</body>
+
+</html>

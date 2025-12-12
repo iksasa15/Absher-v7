@@ -1,0 +1,3433 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رَصْد - نظام مراقبة الدرون المتقدم</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --light: #f1f5f9;
+            --dark: #020617;
+            --border: rgba(148, 163, 184, 0.2);
+            --card-bg: rgba(30, 41, 59, 0.8);
+            --hover: rgba(59, 130, 246, 0.1);
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--light);
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.1) 0%, transparent 30%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.1) 0%, transparent 30%);
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 70px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            grid-column: 1;
+            grid-row: 1 / 3;
+            background-color: var(--secondary);
+            border-left: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px 20px 10px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .logo-image {
+            width: 225px;
+            height: auto;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+
+        .nav-section {
+            margin-bottom: 20px;
+        }
+
+        .nav-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: rgba(241, 245, 249, 0.5);
+            margin-bottom: 12px;
+            padding: 0 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-items {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: var(--light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            gap: 12px;
+        }
+
+        .nav-link:hover {
+            background-color: var(--hover);
+        }
+
+        .nav-link.active {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            width: 25px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 20px 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        /* Header Styles */
+        .header {
+            grid-column: 2;
+            grid-row: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 280px;
+            background-color: rgba(30, 41, 59, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-top: 8px;
+            padding: 10px 0;
+            z-index: 1000;
+            display: none !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-box:focus-within .search-dropdown {
+            display: block !important;
+        }
+
+        .search-suggestions-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.6);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 5px;
+        }
+
+        .search-suggestions-header i {
+            color: var(--warning);
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+        }
+
+        .suggestion-item:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .suggestion-item i {
+            color: var(--accent);
+            width: 16px;
+            text-align: center;
+        }
+
+        .search-results {
+            border-top: 1px solid var(--border);
+            margin-top: 5px;
+            padding-top: 5px;
+        }
+
+        .search-results-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.6);
+        }
+
+        .search-results-header i {
+            color: var(--accent);
+        }
+
+        .search-input {
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 15px 8px 40px;
+            font-size: 14px;
+            color: var(--light);
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            width: 300px;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .header-icon:hover {
+            background-color: var(--hover);
+            border-color: var(--accent);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--danger);
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            border: 2px solid var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            grid-column: 2;
+            grid-row: 2;
+            padding: 20px 30px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            overflow-y: auto;
+            height: calc(100vh - 70px);
+        }
+
+        .content-left {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .content-right {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Card Component */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+        }
+
+        .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-action-btn {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background-color: transparent;
+            border: none;
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card-action-btn:hover {
+            background-color: var(--hover);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Map Card */
+        .map-card {
+            height: 500px;
+            position: relative;
+        }
+
+        .map-card .card-body {
+            padding: 0;
+            height: calc(100% - 62px);
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #0f172a;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .map-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+
+        .map-control {
+            background-color: rgba(30, 41, 59, 0.9);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .map-control-header {
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .map-control-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .map-toggle-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .map-toggle-btn.active {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .map-toggle-btn:hover:not(.active) {
+            background-color: var(--hover);
+        }
+
+        .map-legend {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(30, 41, 59, 0.9);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .map-legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        /* Video Feeds */
+        .video-feeds-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .video-feed {
+            position: relative;
+            height: 200px;
+            background-color: #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .video-feed-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 8px 12px;
+            background-color: rgba(15, 23, 42, 0.8);
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border);
+            z-index: 5;
+        }
+
+        .video-feed-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 8px 12px;
+            background-color: rgba(15, 23, 42, 0.8);
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+            z-index: 5;
+        }
+
+        .feed-stats {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feed-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+        }
+
+        .bounding-box {
+            position: absolute;
+            border: 2px solid var(--warning);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .bounding-box-label {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            background-color: inherit;
+            color: white;
+            padding: 3px 6px;
+            font-size: 10px;
+            border-radius: 4px 4px 0 0;
+            white-space: nowrap;
+        }
+
+        .box-danger {
+            border-color: var(--danger);
+        }
+
+        .box-warning {
+            border-color: var(--warning);
+        }
+
+        .box-success {
+            border-color: var(--success);
+        }
+
+        .box-info {
+            border-color: var(--info);
+        }
+
+        /* Alerts Panel */
+        .alerts-panel {
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .alerts-panel .card-body {
+            overflow-y: auto;
+            max-height: calc(100vh - 420px);
+            padding: 0;
+        }
+
+        .alerts-panel::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .alerts-panel::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+
+        .alerts-panel::-webkit-scrollbar-thumb {
+            background-color: var(--border);
+            border-radius: 10px;
+        }
+
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .alert-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .alert-item:hover {
+            background-color: var(--hover);
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .alert-icon-high {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .alert-icon-medium {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .alert-icon-low {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .alert-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .alert-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .alert-desc {
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .alert-info {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .alert-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-right: 5px;
+        }
+
+        .badge-high {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .badge-medium {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .badge-low {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .alert-time {
+            font-size: 11px;
+            color: rgba(241, 245, 249, 0.5);
+            margin-top: 5px;
+            text-align: left;
+        }
+
+        /* Drone Status Card */
+        .drone-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .drone-item {
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .drone-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .drone-active {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .drone-warning {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .drone-danger {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .drone-offline {
+            background-color: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+        }
+
+        .drone-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .drone-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .drone-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .drone-location {
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .drone-battery {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: flex-end;
+            min-width: 80px;
+        }
+
+        .battery-level {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(148, 163, 184, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .battery-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .battery-high {
+            background-color: var(--success);
+        }
+
+        .battery-medium {
+            background-color: var(--warning);
+        }
+
+        .battery-low {
+            background-color: var(--danger);
+        }
+
+        .battery-text {
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        /* Analytics Card */
+        .analytics-card {
+            height: 250px;
+        }
+
+        .analytics-container {
+            height: 100%;
+            width: 100%;
+            position: relative;
+        }
+
+        .stat-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background-color: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .stat-title {
+            font-size: 14px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .stat-increase {
+            color: var(--success);
+        }
+
+        .stat-decrease {
+            color: var(--danger);
+        }
+
+        .icon-blue {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+        }
+
+        .icon-green {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .icon-orange {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .icon-red {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        /* Responsive */
+        @media (max-width: 1280px) {
+            .stat-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .content-right {
+                grid-row: 2;
+            }
+
+            .alerts-panel .card-body {
+                max-height: 400px;
+            }
+
+            .video-feeds-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .header {
+                grid-column: 1;
+            }
+
+            .main-content {
+                grid-column: 1;
+                padding: 15px;
+            }
+
+            .stat-cards,
+            .video-feeds-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Radar Animation */
+        .radar-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .radar-sweep {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .radar-sweep::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg,
+                    rgba(59, 130, 246, 0.2) 0deg,
+                    rgba(59, 130, 246, 0.1) 20deg,
+                    rgba(59, 130, 246, 0.05) 40deg,
+                    transparent 60deg);
+            animation: radarSweep 4s linear infinite;
+        }
+
+        @keyframes radarSweep {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Facility Management Styles */
+        .facility-panel {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            width: 320px;
+            background-color: rgba(30, 41, 59, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .facility-panel.collapsed {
+            width: 50px;
+            height: 50px;
+            overflow: hidden;
+        }
+
+        .facility-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(59, 130, 246, 0.1);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .facility-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .facility-panel-title i {
+            color: var(--accent);
+        }
+
+        .facility-panel-toggle {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            background-color: rgba(59, 130, 246, 0.2);
+            color: var(--accent);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .facility-panel-toggle:hover {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .facility-panel-body {
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .facility-panel-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .facility-panel-body::-webkit-scrollbar-thumb {
+            background-color: var(--border);
+            border-radius: 10px;
+        }
+
+        /* Drawing Tools */
+        .facility-tools {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .facility-tool-btn {
+            flex: 1;
+            min-width: calc(50% - 4px);
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.5);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .facility-tool-btn:hover {
+            background-color: var(--hover);
+            border-color: var(--accent);
+        }
+
+        .facility-tool-btn.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .facility-tool-btn i {
+            font-size: 14px;
+        }
+
+        /* Facility List */
+        .facility-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .facility-item {
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .facility-item:hover {
+            border-color: var(--accent);
+            background-color: var(--hover);
+        }
+
+        .facility-item.selected {
+            border-color: var(--accent);
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+
+        .facility-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .facility-item-name {
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .facility-item-name i {
+            color: var(--accent);
+        }
+
+        .facility-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .facility-action-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: none;
+            background-color: transparent;
+            color: var(--light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 11px;
+        }
+
+        .facility-action-btn:hover {
+            background-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .facility-action-btn.delete:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .facility-item-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 11px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .facility-info-row {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .facility-info-label {
+            color: rgba(241, 245, 249, 0.5);
+            font-size: 10px;
+        }
+
+        .facility-info-value {
+            color: var(--light);
+            font-weight: 500;
+            font-size: 11px;
+        }
+
+        /* Selected Facility Info Panel */
+        .facility-details {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .facility-details-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+        }
+
+        .facility-details-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .facility-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .facility-detail-label {
+            font-size: 11px;
+            color: rgba(241, 245, 249, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .facility-detail-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--light);
+            background-color: rgba(15, 23, 42, 0.5);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .facility-coordinates {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .facility-dimensions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* Empty State */
+        .facility-empty {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        .facility-empty i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: var(--accent);
+            opacity: 0.5;
+        }
+
+        .facility-empty p {
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .facility-empty small {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        /* Map Drawing Mode Indicator */
+        .drawing-mode-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--accent);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .drawing-mode-indicator.active {
+            display: flex;
+        }
+
+        .drawing-mode-indicator .cancel-drawing {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .drawing-mode-indicator .cancel-drawing:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Facility Tooltip on Map */
+        .facility-tooltip {
+            background-color: rgba(30, 41, 59, 0.95) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 8px !important;
+            padding: 10px !important;
+            color: var(--light) !important;
+            font-family: 'Tajawal', sans-serif !important;
+            direction: rtl !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .leaflet-tooltip-right:before {
+            border-right-color: rgba(30, 41, 59, 0.95) !important;
+        }
+
+        .leaflet-tooltip-left:before {
+            border-left-color: rgba(30, 41, 59, 0.95) !important;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 4px 30px rgba(59, 130, 246, 0.6);
+            }
+        }
+
+        /* Selected Facility Panel on Map */
+        .selected-facility-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(30, 41, 59, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            min-width: 200px;
+            max-width: 280px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .selected-facility-panel.collapsed {
+            min-width: auto;
+            max-width: none;
+        }
+
+        .selected-facility-panel.collapsed .selected-facility-body {
+            display: none;
+        }
+
+        .selected-facility-toggle {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            background-color: rgba(59, 130, 246, 0.2);
+            color: var(--accent);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-right: auto;
+        }
+
+        .selected-facility-toggle:hover {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .selected-facility-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(59, 130, 246, 0.1);
+            border-radius: 10px 10px 0 0;
+        }
+
+        .selected-facility-header i {
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        .selected-facility-header span {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--light);
+        }
+
+        .selected-facility-body {
+            padding: 12px 15px;
+        }
+
+        .selected-facility-info .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .selected-facility-info .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .selected-facility-info .info-label {
+            font-size: 11px;
+            color: rgba(241, 245, 249, 0.6);
+        }
+
+        .selected-facility-info .info-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--light);
+            font-family: 'Consolas', monospace;
+            direction: ltr;
+        }
+
+        .go-to-facility-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .go-to-facility-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .go-to-facility-btn i {
+            font-size: 14px;
+        }
+
+        .facility-panel-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .facility-panel-actions .go-to-facility-btn {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .delete-facility-btn {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+        }
+
+        .delete-facility-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .delete-facility-btn i {
+            font-size: 12px;
+        }
+
+        /* Facility Search Styles */
+        .facility-search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .facility-search-input {
+            width: 180px;
+            padding: 8px 35px 8px 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 12px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s ease;
+            direction: rtl;
+        }
+
+        .facility-search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            width: 220px;
+        }
+
+        .facility-search-input::placeholder {
+            color: rgba(241, 245, 249, 0.4);
+        }
+
+        .facility-search-icon {
+            position: absolute;
+            left: 10px;
+            color: rgba(241, 245, 249, 0.5);
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .facility-search-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 100%;
+            min-width: 250px;
+            background: rgba(30, 41, 59, 0.98);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 5px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .facility-search-dropdown.show {
+            display: block;
+        }
+
+        .facility-search-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--border);
+            direction: rtl;
+        }
+
+        .facility-search-item:last-child {
+            border-bottom: none;
+        }
+
+        .facility-search-item:hover {
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .facility-search-item i {
+            color: var(--success);
+            font-size: 14px;
+        }
+
+        .facility-search-item-name {
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .facility-search-item-type {
+            font-size: 10px;
+            color: rgba(241, 245, 249, 0.5);
+            margin-right: auto;
+        }
+
+        .facility-search-empty {
+            padding: 15px;
+            text-align: center;
+            color: rgba(241, 245, 249, 0.5);
+            font-size: 12px;
+            direction: rtl;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="18.png" alt="شعار رصد" class="logo-image">
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-header">القائمة الرئيسية</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link active">
+                            <div class="nav-icon"><i class="fas fa-th-large"></i></div>
+                            <span>لوحة التحكم</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="interactive-map.html" class="nav-link">
+                            <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
+                            <span>الخريطة التفاعلية</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="drone-management.html" class="nav-link">
+                            <div class="nav-icon"><i class="fas fa-drone-alt"></i></div>
+                            <span>إدارة الطائرات</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="live-broadcast.html" class="nav-link">
+                            <div class="nav-icon"><i class="fas fa-video"></i></div>
+                            <span>البث المباشر</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-header">التحليل والتقارير</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="analytics.html" class="nav-link">
+                            <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+                            <span>التحليلات</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="alerts-log.html" class="nav-link">
+                            <div class="nav-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                            <span>سجل التنبيهات</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="reports.html" class="nav-link">
+                            <div class="nav-icon"><i class="fas fa-file-alt"></i></div>
+                            <span>التقارير</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-header">الإعدادات</div>
+                <ul class="nav-items">
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                            <span>إعدادات النظام</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="users.html" class="nav-link">
+                            <div class="nav-icon"><i class="fas fa-user-cog"></i></div>
+                            <span>إدارة المستخدمين</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">م</div>
+                    <div class="user-details">
+                        <div class="user-name">محمد القحطاني</div>
+                        <div class="user-role">مشرف النظام</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Header -->
+        <header class="header">
+            <h1 class="page-title">لوحة التحكم</h1>
+            <div class="header-actions">
+                <div class="search-box" id="searchBox">
+                    <input type="text" class="search-input" id="dashboardSearch" placeholder="البحث..."
+                        autocomplete="off">
+                    <i class="fas fa-search search-icon"></i>
+                    <!-- Search Suggestions Dropdown -->
+                    <div class="search-dropdown" id="searchDropdown">
+                        <div class="search-suggestions-header">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>اقتراحات البحث</span>
+                        </div>
+                        <div class="search-suggestions" id="searchSuggestions">
+                            <div class="suggestion-item" data-search="الطائرات">
+                                <i class="fas fa-drone"></i>
+                                <span>الطائرات النشطة</span>
+                            </div>
+                            <div class="suggestion-item" data-search="التنبيهات">
+                                <i class="fas fa-bell"></i>
+                                <span>التنبيهات اللحظية</span>
+                            </div>
+                            <div class="suggestion-item" data-search="المنشآت">
+                                <i class="fas fa-building"></i>
+                                <span>المنشآت المحددة</span>
+                            </div>
+                            <div class="suggestion-item" data-search="التهديدات">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>التهديدات المرصودة</span>
+                            </div>
+                            <div class="suggestion-item" data-search="الخريطة">
+                                <i class="fas fa-map-marked-alt"></i>
+                                <span>خريطة المراقبة</span>
+                            </div>
+                            <div class="suggestion-item" data-search="البث المباشر">
+                                <i class="fas fa-video"></i>
+                                <span>البث المباشر</span>
+                            </div>
+                        </div>
+                        <div class="search-results" id="searchResults" style="display: none;">
+                            <div class="search-results-header">
+                                <i class="fas fa-search"></i>
+                                <span>نتائج البحث</span>
+                            </div>
+                            <div class="search-results-list" id="searchResultsList"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-icon">
+                    <i class="fas fa-bell"></i>
+                    <div class="notification-badge">3</div>
+                </div>
+                <div class="header-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-left">
+                <!-- Stats Cards -->
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">الطائرات النشطة</div>
+                            <div class="stat-icon icon-blue">
+                                <i class="fas fa-drone"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value">4</div>
+                        <div class="stat-change stat-increase">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>2 منذ أمس</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">التنبيهات اليوم</div>
+                            <div class="stat-icon icon-red">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value">7</div>
+                        <div class="stat-change stat-decrease">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>3 منذ أمس</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">التهديدات المرصودة</div>
+                            <div class="stat-icon icon-orange">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-change stat-increase">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>5 منذ أمس</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">مناطق المراقبة</div>
+                            <div class="stat-icon icon-green">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value">8</div>
+                        <div class="stat-change">
+                            <span>لم يتغير</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Card -->
+                <div class="card map-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon"><i class="fas fa-map-marked-alt"></i></div>
+                            <span>خريطة المراقبة المباشرة</span>
+                        </div>
+                        <div class="card-actions">
+                            <div class="facility-search-box">
+                                <input type="text" id="facilitySearchInput" class="facility-search-input"
+                                    placeholder="ابحث عن منشأة..." autocomplete="off">
+                                <i class="fas fa-search facility-search-icon"></i>
+                                <div class="facility-search-dropdown" id="facilitySearchDropdown"></div>
+                            </div>
+                            <button class="card-action-btn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                            <button class="card-action-btn" title="عرض ملء الشاشة"><i
+                                    class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="map"></div>
+
+                        <!-- Drawing Mode Indicator -->
+                        <div class="drawing-mode-indicator" id="drawingModeIndicator">
+                            <i class="fas fa-draw-polygon"></i>
+                            <span>وضع الرسم: انقر على الخريطة لتحديد زوايا المنشأة</span>
+                            <button class="cancel-drawing" id="cancelDrawing">إلغاء</button>
+                        </div>
+
+                        <!-- Selected Facility Info Panel -->
+                        <div class="selected-facility-panel" id="selectedFacilityPanel" style="display: none;">
+                            <div class="selected-facility-header">
+                                <button class="selected-facility-toggle" id="toggleFacilityPanel" title="إخفاء/إظهار">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                                <i class="fas fa-building"></i>
+                                <span id="selectedFacilityTitle">المنشأة المختارة</span>
+                            </div>
+                            <div class="selected-facility-body">
+                                <div class="selected-facility-info">
+                                    <div class="info-row">
+                                        <span class="info-label">الإحداثيات:</span>
+                                        <span class="info-value" id="facilityCoords">-</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">المساحة:</span>
+                                        <span class="info-value" id="facilityAreaInfo">-</span>
+                                    </div>
+                                </div>
+                                <div class="facility-panel-actions">
+                                    <button class="go-to-facility-btn" id="goToFacilityBtn" title="الذهاب للمنشأة">
+                                        <i class="fas fa-location-arrow"></i>
+                                        <span>الذهاب للمنشأة</span>
+                                    </button>
+                                    <button class="delete-facility-btn" id="deleteFacilityBtn" title="حذف المنشأة">
+                                        <i class="fas fa-trash-alt"></i>
+                                        <span>حذف</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="map-overlay">
+                            <div class="map-control">
+                                <div class="map-control-header">طبقات الخريطة</div>
+                                <div class="map-control-toggle">
+                                    <button class="map-toggle-btn active">
+                                        <i class="fas fa-drone"></i>
+                                        <span>الطائرات</span>
+                                    </button>
+                                    <button class="map-toggle-btn active">
+                                        <i class="fas fa-route"></i>
+                                        <span>المسارات</span>
+                                    </button>
+                                </div>
+                                <div class="map-control-toggle">
+                                    <button class="map-toggle-btn active">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>المناطق الحساسة</span>
+                                    </button>
+                                    <button class="map-toggle-btn">
+                                        <i class="fas fa-eye-slash"></i>
+                                        <span>النقاط العمياء</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="map-control">
+                                <div class="map-control-header">نوع الخريطة</div>
+                                <div class="map-control-toggle">
+                                    <button class="map-toggle-btn active">
+                                        <i class="fas fa-satellite"></i>
+                                        <span>صناعي</span>
+                                    </button>
+                                    <button class="map-toggle-btn">
+                                        <i class="fas fa-map"></i>
+                                        <span>طرق</span>
+                                    </button>
+                                    <button class="map-toggle-btn">
+                                        <i class="fas fa-mountain"></i>
+                                        <span>تضاريس</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Feeds -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon"><i class="fas fa-video"></i></div>
+                            <span>البث المباشر للطائرات</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action-btn" title="تبديل العرض"><i class="fas fa-th"></i></button>
+                            <button class="card-action-btn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="video-feeds-container">
+                            <div class="video-feed">
+                                <div class="video-feed-header">
+                                    <span>طائرة #1 - القطاع الشرقي</span>
+                                    <span>مباشر</span>
+                                </div>
+                                <div class="bounding-box box-danger"
+                                    style="left: 45%; top: 40%; width: 20%; height: 30%;">
+                                    <div class="bounding-box-label">شخص مسلح</div>
+                                </div>
+                                <div class="bounding-box box-info"
+                                    style="left: 20%; top: 55%; width: 15%; height: 25%;">
+                                    <div class="bounding-box-label">شخص</div>
+                                </div>
+                                <div class="video-feed-footer">
+                                    <div class="feed-stats">
+                                        <div class="feed-stat">
+                                            <i class="fas fa-user"></i>
+                                            <span>3 أشخاص</span>
+                                        </div>
+                                        <div class="feed-stat">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <span>1 تهديد</span>
+                                        </div>
+                                    </div>
+                                    <span>بعد: 85م</span>
+                                </div>
+                            </div>
+
+                            <div class="video-feed">
+                                <div class="video-feed-header">
+                                    <span>طائرة #2 - القطاع الشمالي</span>
+                                    <span>مباشر</span>
+                                </div>
+                                <div class="bounding-box box-warning"
+                                    style="left: 30%; top: 50%; width: 18%; height: 28%;">
+                                    <div class="bounding-box-label">حقيبة مشبوهة</div>
+                                </div>
+                                <div class="video-feed-footer">
+                                    <div class="feed-stats">
+                                        <div class="feed-stat">
+                                            <i class="fas fa-user"></i>
+                                            <span>0 أشخاص</span>
+                                        </div>
+                                        <div class="feed-stat">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <span>1 تهديد محتمل</span>
+                                        </div>
+                                    </div>
+                                    <span>بعد: 120م</span>
+                                </div>
+                            </div>
+
+                            <div class="video-feed">
+                                <div class="video-feed-header">
+                                    <span>طائرة #3 - القطاع الغربي</span>
+                                    <span>مباشر</span>
+                                </div>
+                                <div class="bounding-box box-info"
+                                    style="left: 15%; top: 40%; width: 15%; height: 30%;">
+                                    <div class="bounding-box-label">شخص</div>
+                                </div>
+                                <div class="bounding-box box-info"
+                                    style="left: 60%; top: 45%; width: 15%; height: 30%;">
+                                    <div class="bounding-box-label">شخص</div>
+                                </div>
+                                <div class="video-feed-footer">
+                                    <div class="feed-stats">
+                                        <div class="feed-stat">
+                                            <i class="fas fa-user"></i>
+                                            <span>2 أشخاص</span>
+                                        </div>
+                                        <div class="feed-stat">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <span>0 تهديدات</span>
+                                        </div>
+                                    </div>
+                                    <span>بعد: 150م</span>
+                                </div>
+                            </div>
+
+                            <div class="video-feed">
+                                <div class="video-feed-header">
+                                    <span>طائرة #4 - القطاع الجنوبي</span>
+                                    <span>مباشر</span>
+                                </div>
+                                <div class="bounding-box box-success"
+                                    style="left: 35%; top: 35%; width: 20%; height: 25%;">
+                                    <div class="bounding-box-label">مركبة مصرح بها</div>
+                                </div>
+                                <div class="video-feed-footer">
+                                    <div class="feed-stats">
+                                        <div class="feed-stat">
+                                            <i class="fas fa-user"></i>
+                                            <span>0 أشخاص</span>
+                                        </div>
+                                        <div class="feed-stat">
+                                            <i class="fas fa-car"></i>
+                                            <span>1 مركبة</span>
+                                        </div>
+                                    </div>
+                                    <span>بعد: 200م</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Card -->
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+                            <span>تحليل التهديدات</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action-btn" title="تصدير البيانات"><i
+                                    class="fas fa-file-download"></i></button>
+                            <button class="card-action-btn" title="تصفية"><i class="fas fa-filter"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="analytics-container">
+                            <canvas id="threatAnalyticsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-right">
+                <!-- Alerts Panel -->
+                <div class="card alerts-panel">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon"><i class="fas fa-bell"></i></div>
+                            <span>التنبيهات اللحظية</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action-btn" title="تصفية"><i class="fas fa-filter"></i></button>
+                            <button class="card-action-btn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert-list">
+                            <div class="alert-item">
+                                <div class="alert-icon alert-icon-high">
+                                    <i class="fas fa-gun"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">تم رصد شخص يحمل سلاح ناري</div>
+                                    <div class="alert-desc">
+                                        <div class="alert-info">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>المنطقة الشرقية - بوابة رقم 3</span>
+                                        </div>
+                                        <div class="alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>شخص يحمل بندقية، يرتدي ملابس داكنة</span>
+                                        </div>
+                                        <span class="alert-badge badge-high">خطورة عالية</span>
+                                    </div>
+                                    <div class="alert-time">منذ 2 دقيقة</div>
+                                </div>
+                            </div>
+
+                            <div class="alert-item">
+                                <div class="alert-icon alert-icon-medium">
+                                    <i class="fas fa-suitcase"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">تم رصد حقيبة مشبوهة</div>
+                                    <div class="alert-desc">
+                                        <div class="alert-info">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>القطاع الشمالي - ساحة الانتظار</span>
+                                        </div>
+                                        <div class="alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>حقيبة سوداء متروكة بدون مراقبة منذ 10 دقائق</span>
+                                        </div>
+                                        <span class="alert-badge badge-medium">خطورة متوسطة</span>
+                                    </div>
+                                    <div class="alert-time">منذ 5 دقائق</div>
+                                </div>
+                            </div>
+
+                            <div class="alert-item">
+                                <div class="alert-icon alert-icon-high">
+                                    <i class="fas fa-drone-alt"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">تم رصد درون دخيل</div>
+                                    <div class="alert-desc">
+                                        <div class="alert-info">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>القطاع الغربي - الحدود الخارجية</span>
+                                        </div>
+                                        <div class="alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>درون من طراز DJI Phantom يحلق على ارتفاع 50 متر</span>
+                                        </div>
+                                        <span class="alert-badge badge-high">خطورة عالية</span>
+                                    </div>
+                                    <div class="alert-time">منذ 8 دقائق</div>
+                                </div>
+                            </div>
+
+                            <div class="alert-item">
+                                <div class="alert-icon alert-icon-medium">
+                                    <i class="fas fa-user-secret"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">تطابق هوية مع شخص مطلوب</div>
+                                    <div class="alert-desc">
+                                        <div class="alert-info">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>المدخل الرئيسي - نقطة التفتيش</span>
+                                        </div>
+                                        <div class="alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>تطابق بنسبة 89٪ مع قائمة المطلوبين</span>
+                                        </div>
+                                        <span class="alert-badge badge-medium">خطورة متوسطة</span>
+                                    </div>
+                                    <div class="alert-time">منذ 15 دقيقة</div>
+                                </div>
+                            </div>
+
+                            <div class="alert-item">
+                                <div class="alert-icon alert-icon-low">
+                                    <i class="fas fa-car"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">سيارة غير مصرح لها</div>
+                                    <div class="alert-desc">
+                                        <div class="alert-info">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>مواقف السيارات الشمالية</span>
+                                        </div>
+                                        <div class="alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>سيارة سوداء لوحة رقم 1234 ABC</span>
+                                        </div>
+                                        <span class="alert-badge badge-low">خطورة منخفضة</span>
+                                    </div>
+                                    <div class="alert-time">منذ 25 دقيقة</div>
+                                </div>
+                            </div>
+
+                            <div class="alert-item">
+                                <div class="alert-icon alert-icon-low">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">انقطاع اتصال مؤقت</div>
+                                    <div class="alert-desc">
+                                        <div class="alert-info">
+                                            <i class="fas fa-drone"></i>
+                                            <span>الطائرة رقم 5 - القطاع الجنوبي</span>
+                                        </div>
+                                        <div class="alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>انقطاع اتصال لمدة 30 ثانية ثم عاد</span>
+                                        </div>
+                                        <span class="alert-badge badge-low">خطورة منخفضة</span>
+                                    </div>
+                                    <div class="alert-time">منذ 40 دقيقة</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drone Status Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon"><i class="fas fa-drone"></i></div>
+                            <span>حالة الطائرات</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action-btn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="drone-list">
+                            <div class="drone-item">
+                                <div class="drone-icon drone-active">
+                                    <i class="fas fa-drone"></i>
+                                </div>
+                                <div class="drone-info">
+                                    <div class="drone-name">طائرة #1</div>
+                                    <div class="drone-status">
+                                        <i class="fas fa-circle" style="color: var(--success);"></i>
+                                        <span>نشطة - مهمة مراقبة</span>
+                                    </div>
+                                    <div class="drone-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>القطاع الشرقي</span>
+                                    </div>
+                                </div>
+                                <div class="drone-battery">
+                                    <div class="battery-level">
+                                        <div class="battery-fill battery-high" style="width: 85%;"></div>
+                                    </div>
+                                    <div class="battery-text">85% - 45 دقيقة متبقية</div>
+                                </div>
+                            </div>
+
+                            <div class="drone-item">
+                                <div class="drone-icon drone-active">
+                                    <i class="fas fa-drone"></i>
+                                </div>
+                                <div class="drone-info">
+                                    <div class="drone-name">طائرة #2</div>
+                                    <div class="drone-status">
+                                        <i class="fas fa-circle" style="color: var(--success);"></i>
+                                        <span>نشطة - مهمة تأمين</span>
+                                    </div>
+                                    <div class="drone-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>القطاع الشمالي</span>
+                                    </div>
+                                </div>
+                                <div class="drone-battery">
+                                    <div class="battery-level">
+                                        <div class="battery-fill battery-medium" style="width: 55%;"></div>
+                                    </div>
+                                    <div class="battery-text">55% - 25 دقيقة متبقية</div>
+                                </div>
+                            </div>
+
+                            <div class="drone-item">
+                                <div class="drone-icon drone-warning">
+                                    <i class="fas fa-drone"></i>
+                                </div>
+                                <div class="drone-info">
+                                    <div class="drone-name">طائرة #3</div>
+                                    <div class="drone-status">
+                                        <i class="fas fa-circle" style="color: var(--warning);"></i>
+                                        <span>عائدة للشحن</span>
+                                    </div>
+                                    <div class="drone-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>في الطريق للمنصة</span>
+                                    </div>
+                                </div>
+                                <div class="drone-battery">
+                                    <div class="battery-level">
+                                        <div class="battery-fill battery-low" style="width: 15%;"></div>
+                                    </div>
+                                    <div class="battery-text">15% - 5 دقائق متبقية</div>
+                                </div>
+                            </div>
+
+                            <div class="drone-item">
+                                <div class="drone-icon drone-active">
+                                    <i class="fas fa-drone"></i>
+                                </div>
+                                <div class="drone-info">
+                                    <div class="drone-name">طائرة #4</div>
+                                    <div class="drone-status">
+                                        <i class="fas fa-circle" style="color: var(--success);"></i>
+                                        <span>نشطة - مهمة استطلاع</span>
+                                    </div>
+                                    <div class="drone-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>القطاع الغربي</span>
+                                    </div>
+                                </div>
+                                <div class="drone-battery">
+                                    <div class="battery-level">
+                                        <div class="battery-fill battery-high" style="width: 75%;"></div>
+                                    </div>
+                                    <div class="battery-text">75% - 35 دقيقة متبقية</div>
+                                </div>
+                            </div>
+
+                            <div class="drone-item">
+                                <div class="drone-icon drone-offline">
+                                    <i class="fas fa-drone"></i>
+                                </div>
+                                <div class="drone-info">
+                                    <div class="drone-name">طائرة #5</div>
+                                    <div class="drone-status">
+                                        <i class="fas fa-circle" style="color: #94a3b8;"></i>
+                                        <span>قيد الصيانة</span>
+                                    </div>
+                                    <div class="drone-location">
+                                        <i class="fas fa-tools"></i>
+                                        <span>في المنصة الرئيسية</span>
+                                    </div>
+                                </div>
+                                <div class="drone-battery">
+                                    <div class="battery-level">
+                                        <div class="battery-fill" style="width: 0%;"></div>
+                                    </div>
+                                    <div class="battery-text">غير متصلة</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Radar Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon"><i class="fas fa-broadcast-tower"></i></div>
+                            <span>الرادار التكتيكي</span>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action-btn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="radar-container">
+                            <div class="radar-sweep"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Leaflet Map JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize Map with smooth controls
+        const map = L.map('map', {
+            center: [24.7136, 46.6753], // Riyadh coordinates
+            zoom: 14,
+            zoomControl: false,
+            // Smooth zoom settings
+            zoomSnap: 0.25,
+            zoomDelta: 0.5,
+            wheelDebounceTime: 40,
+            wheelPxPerZoomLevel: 120,
+            // Inertia for smooth panning
+            inertia: true,
+            inertiaDeceleration: 2500,
+            inertiaMaxSpeed: 1800,
+            easeLinearity: 0.2,
+            // Double-click zoom settings
+            doubleClickZoom: 'center'
+        });
+
+        // Add dark theme map layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // ==================== LOAD FACILITIES FROM LOCALSTORAGE ====================
+        // This syncs facilities created in the interactive map page (إدارة المنشآت)
+        function loadSyncedFacilities() {
+            const saved = localStorage.getItem('rasd_facilities');
+            if (!saved) return;
+
+            try {
+                const data = JSON.parse(saved);
+                if (!data || data.length === 0) return;
+
+                data.forEach((f, idx) => {
+                    if (f.type === 'marker') {
+                        // Add marker
+                        const marker = L.marker([f.center.lat, f.center.lng], {
+                            icon: L.divIcon({
+                                className: 'facility-marker',
+                                html: `<div style="background: #10b981; width: 16px; height: 16px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+                                iconSize: [16, 16],
+                                iconAnchor: [8, 16]
+                            })
+                        }).addTo(map);
+
+                        marker.bindPopup(`
+                            <div style="text-align: center; direction: rtl; min-width: 150px;">
+                                <strong style="color: #10b981;">${f.name}</strong><br>
+                                <small>علامة محددة</small>
+                            </div>
+                        `);
+                    } else if (f.type === 'circle' && f.radius) {
+                        // Add circle
+                        const circle = L.circle([f.center.lat, f.center.lng], {
+                            radius: f.radius,
+                            color: '#10b981',
+                            fillColor: '#10b981',
+                            fillOpacity: 0.15,
+                            weight: 2
+                        }).addTo(map);
+
+                        circle.bindPopup(`
+                            <div style="text-align: center; direction: rtl; min-width: 180px;">
+                                <strong style="color: #10b981;">${f.name}</strong><br>
+                                <small>نصف القطر: ${f.radius.toFixed(1)} م</small><br>
+                                <small>المساحة: ${(f.area / 10000).toFixed(2)} هكتار</small>
+                            </div>
+                        `);
+                    } else if (f.coordinates && f.coordinates.length > 0) {
+                        // Add polygon
+                        const coords = f.coordinates.map(c => [c.lat, c.lng]);
+                        const polygon = L.polygon(coords, {
+                            color: '#10b981',
+                            fillColor: '#10b981',
+                            fillOpacity: 0.15,
+                            weight: 2
+                        }).addTo(map);
+
+                        polygon.bindPopup(`
+                            <div style="text-align: center; direction: rtl; min-width: 200px;">
+                                <strong style="color: #10b981;">${f.name}</strong><br>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px; font-size: 11px;">
+                                    <div>العرض: ${f.dimensions.width.toFixed(1)} م</div>
+                                    <div>الطول: ${f.dimensions.height.toFixed(1)} م</div>
+                                </div>
+                                <div style="margin-top: 5px; font-size: 11px;">
+                                    المساحة: ${f.area >= 10000 ? (f.area / 10000).toFixed(2) + ' هكتار' : f.area.toFixed(1) + ' م²'}
+                                </div>
+                                <div style="margin-top: 8px;">
+                                    <small style="color: #94a3b8;">الإحداثيات: ${f.center.lat.toFixed(4)}, ${f.center.lng.toFixed(4)}</small>
+                                </div>
+                            </div>
+                        `);
+                    }
+                });
+
+                console.log(`تم تحميل ${data.length} منشأة من الخريطة التفاعلية`);
+            } catch (e) {
+                console.error('Error loading synced facilities:', e);
+            }
+        }
+
+        // Load synced facilities on page load
+        loadSyncedFacilities();
+
+        // Listen for storage changes (when user saves in interactive map page)
+        window.addEventListener('storage', function (e) {
+            if (e.key === 'rasd_facilities') {
+                // Reload page to show updated facilities
+                location.reload();
+            }
+        });
+
+        // ==================== FACILITY SEARCH FUNCTIONALITY ====================
+        const facilitySearchInput = document.getElementById('facilitySearchInput');
+        const facilitySearchDropdown = document.getElementById('facilitySearchDropdown');
+
+        // Get facilities from localStorage
+        function getFacilitiesForSearch() {
+            const saved = localStorage.getItem('rasd_facilities');
+            if (!saved) return [];
+            try {
+                return JSON.parse(saved) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        // Search facilities by name
+        function searchFacilities(query) {
+            const facilities = getFacilitiesForSearch();
+            if (!query.trim()) return facilities;
+
+            const lowerQuery = query.toLowerCase().trim();
+            return facilities.filter(f => f.name.toLowerCase().includes(lowerQuery));
+        }
+
+        // Get facility type label
+        function getFacilityTypeLabel(type) {
+            switch (type) {
+                case 'marker': return 'علامة';
+                case 'circle': return 'دائرة';
+                case 'polygon': return 'مضلع';
+                default: return 'منشأة';
+            }
+        }
+
+        // Get facility icon
+        function getFacilityIcon(type) {
+            switch (type) {
+                case 'marker': return 'fa-map-marker-alt';
+                case 'circle': return 'fa-circle';
+                default: return 'fa-draw-polygon';
+            }
+        }
+
+        // Render search results
+        function renderSearchResults(facilities) {
+            if (facilities.length === 0) {
+                facilitySearchDropdown.innerHTML = `
+                    <div class="facility-search-empty">
+                        <i class="fas fa-search"></i>
+                        <div>لا توجد منشآت مطابقة</div>
+                    </div>
+                `;
+                return;
+            }
+
+            facilitySearchDropdown.innerHTML = facilities.map(f => `
+                <div class="facility-search-item" data-lat="${f.center.lat}" data-lng="${f.center.lng}" data-name="${f.name}">
+                    <i class="fas ${getFacilityIcon(f.type)}"></i>
+                    <span class="facility-search-item-name">${f.name}</span>
+                    <span class="facility-search-item-type">${getFacilityTypeLabel(f.type)}</span>
+                </div>
+            `).join('');
+
+            // Add click handlers
+            facilitySearchDropdown.querySelectorAll('.facility-search-item').forEach(item => {
+                item.addEventListener('click', function () {
+                    const lat = parseFloat(this.dataset.lat);
+                    const lng = parseFloat(this.dataset.lng);
+                    const name = this.dataset.name;
+
+                    // Fly to location
+                    map.flyTo([lat, lng], 17, {
+                        duration: 1.5,
+                        easeLinearity: 0.25
+                    });
+
+                    // Close dropdown
+                    facilitySearchDropdown.classList.remove('show');
+                    facilitySearchInput.value = name;
+
+                    // Show toast notification
+                    if (typeof showToast === 'function') {
+                        showToast(`تم الانتقال إلى: ${name}`, 'success');
+                    }
+                });
+            });
+        }
+
+        // Event listeners
+        if (facilitySearchInput) {
+            facilitySearchInput.addEventListener('input', function () {
+                const query = this.value;
+                const results = searchFacilities(query);
+                renderSearchResults(results);
+                facilitySearchDropdown.classList.add('show');
+            });
+
+            facilitySearchInput.addEventListener('focus', function () {
+                const results = searchFacilities(this.value);
+                renderSearchResults(results);
+                facilitySearchDropdown.classList.add('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.facility-search-box')) {
+                    facilitySearchDropdown.classList.remove('show');
+                }
+            });
+
+            // Handle Enter key
+            facilitySearchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    const results = searchFacilities(this.value);
+                    if (results.length > 0) {
+                        const first = results[0];
+                        map.flyTo([first.center.lat, first.center.lng], 17, {
+                            duration: 1.5,
+                            easeLinearity: 0.25
+                        });
+                        facilitySearchDropdown.classList.remove('show');
+                        this.value = first.name;
+                    }
+                }
+            });
+        }
+
+        // Analytics Chart
+        const ctx = document.getElementById('threatAnalyticsChart').getContext('2d');
+        const threatAnalyticsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['6:00', '8:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '24:00'],
+                datasets: [
+                    {
+                        label: 'تهديدات عالية الخطورة',
+                        data: [1, 2, 0, 1, 3, 2, 1, 4, 2, 1],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'تهديدات متوسطة الخطورة',
+                        data: [3, 2, 4, 5, 2, 3, 4, 6, 3, 2],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'تهديدات منخفضة الخطورة',
+                        data: [5, 7, 6, 4, 8, 9, 7, 5, 4, 6],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#f1f5f9',
+                            font: {
+                                family: 'Tajawal'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        rtl: true,
+                        bodyFont: {
+                            family: 'Tajawal'
+                        },
+                        titleFont: {
+                            family: 'Tajawal'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#f1f5f9'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#f1f5f9'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeDisplay = document.querySelector('.user-role');
+            if (timeDisplay) {
+                const options = {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                };
+                timeDisplay.textContent = new Intl.DateTimeFormat('ar-SA', options).format(now);
+            }
+        }
+
+        updateTime();
+        setInterval(updateTime, 60000);
+
+        // Map toggle buttons functionality
+        document.querySelectorAll('.map-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                this.classList.toggle('active');
+            });
+        });
+
+        // Simulate bounding boxes movement in video feeds
+        function animateBoundingBoxes() {
+            const boxes = document.querySelectorAll('.bounding-box');
+
+            boxes.forEach(box => {
+                const currentLeft = parseFloat(box.style.left);
+                const currentTop = parseFloat(box.style.top);
+
+                // Add small random movement
+                const newLeft = Math.max(5, Math.min(75, currentLeft + (Math.random() - 0.5) * 5));
+                const newTop = Math.max(30, Math.min(60, currentTop + (Math.random() - 0.5) * 3));
+
+                box.style.left = `${newLeft}%`;
+                box.style.top = `${newTop}%`;
+            });
+
+            setTimeout(animateBoundingBoxes, 2000);
+        }
+
+        // Start bounding box animation
+        animateBoundingBoxes();
+
+        // Create radar points
+        function createRadarPoints() {
+            const radar = document.querySelector('.radar-container');
+            const pointCount = 20;
+
+            for (let i = 0; i < pointCount; i++) {
+                const point = document.createElement('div');
+                const size = Math.random() * 3 + 2;
+                const distance = Math.random() * 40 + 10;
+                const angle = Math.random() * Math.PI * 2;
+                const x = 50 + distance * Math.cos(angle);
+                const y = 50 + distance * Math.sin(angle);
+
+                point.style.position = 'absolute';
+                point.style.width = `${size}px`;
+                point.style.height = `${size}px`;
+                point.style.backgroundColor = i % 5 === 0 ? '#ef4444' : '#3b82f6';
+                point.style.borderRadius = '50%';
+                point.style.left = `${x}%`;
+                point.style.top = `${y}%`;
+                point.style.opacity = Math.random() * 0.5 + 0.3;
+
+                radar.appendChild(point);
+
+                // Animate points
+                setInterval(() => {
+                    const newDistance = distance + (Math.random() - 0.5) * 2;
+                    const newAngle = angle + (Math.random() - 0.5) * 0.1;
+                    const newX = 50 + newDistance * Math.cos(newAngle);
+                    const newY = 50 + newDistance * Math.sin(newAngle);
+
+                    point.style.left = `${newX}%`;
+                    point.style.top = `${newY}%`;
+                    point.style.opacity = Math.random() * 0.5 + 0.3;
+                }, 2000 + Math.random() * 2000);
+            }
+        }
+
+        // Initialize radar
+        createRadarPoints();
+
+        // ===============================================
+        // إضافة الوظائف لجميع الأيقونات والأزرار
+        // ===============================================
+
+        // Header Icons Functionality
+        const bellIcon = document.querySelector('.header-icon:has(.fa-bell)');
+        const settingsIcon = document.querySelector('.header-icon:has(.fa-cog)');
+        const searchInput = document.querySelector('.search-input');
+        const searchIcon = document.querySelector('.search-icon');
+
+        // Notification Bell
+        if (bellIcon) {
+            bellIcon.style.cursor = 'pointer';
+            bellIcon.addEventListener('click', function () {
+                showNotificationsPanel();
+            });
+        }
+
+        // Settings Icon
+        if (settingsIcon) {
+            settingsIcon.style.cursor = 'pointer';
+            settingsIcon.addEventListener('click', function () {
+                window.location.href = 'settings.html';
+            });
+        }
+
+        // Search Functionality
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    performSearch(this.value);
+                }
+            });
+            searchInput.addEventListener('input', function () {
+                highlightSearchResults(this.value);
+            });
+        }
+
+        if (searchIcon) {
+            searchIcon.style.cursor = 'pointer';
+            searchIcon.addEventListener('click', function () {
+                performSearch(searchInput?.value || '');
+            });
+        }
+
+        // Notifications Panel
+        function showNotificationsPanel() {
+            // Check if panel already exists
+            let panel = document.getElementById('notificationsPanel');
+            if (panel) {
+                panel.classList.toggle('show');
+                return;
+            }
+
+            // Create notifications panel
+            panel = document.createElement('div');
+            panel.id = 'notificationsPanel';
+            panel.innerHTML = `
+                <div class="notifications-overlay"></div>
+                <div class="notifications-drawer">
+                    <div class="notifications-header">
+                        <h3><i class="fas fa-bell"></i> الإشعارات</h3>
+                        <button class="close-notifications"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="notifications-tabs">
+                        <button class="notif-tab active" data-tab="all">الكل</button>
+                        <button class="notif-tab" data-tab="unread">غير مقروء</button>
+                        <button class="notif-tab" data-tab="alerts">التنبيهات</button>
+                    </div>
+                    <div class="notifications-list">
+                        <div class="notif-item unread" data-type="alert">
+                            <div class="notif-icon danger"><i class="fas fa-exclamation-circle"></i></div>
+                            <div class="notif-content">
+                                <div class="notif-title">تنبيه أمني عالي الخطورة</div>
+                                <div class="notif-text">تم رصد شخص يحمل سلاح في القطاع الشرقي</div>
+                                <div class="notif-time">منذ 2 دقيقة</div>
+                            </div>
+                        </div>
+                        <div class="notif-item unread" data-type="alert">
+                            <div class="notif-icon warning"><i class="fas fa-suitcase"></i></div>
+                            <div class="notif-content">
+                                <div class="notif-title">حقيبة مشبوهة</div>
+                                <div class="notif-text">تم رصد حقيبة متروكة في ساحة الانتظار</div>
+                                <div class="notif-time">منذ 5 دقائق</div>
+                            </div>
+                        </div>
+                        <div class="notif-item unread" data-type="system">
+                            <div class="notif-icon info"><i class="fas fa-drone"></i></div>
+                            <div class="notif-content">
+                                <div class="notif-title">طائرة #3 منخفضة البطارية</div>
+                                <div class="notif-text">البطارية 15% - عودة تلقائية للشحن</div>
+                                <div class="notif-time">منذ 10 دقائق</div>
+                            </div>
+                        </div>
+                        <div class="notif-item" data-type="system">
+                            <div class="notif-icon success"><i class="fas fa-check-circle"></i></div>
+                            <div class="notif-content">
+                                <div class="notif-title">مهمة مكتملة</div>
+                                <div class="notif-text">طائرة #1 أكملت دورية المراقبة بنجاح</div>
+                                <div class="notif-time">منذ 30 دقيقة</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notifications-footer">
+                        <button class="mark-all-read"><i class="fas fa-check-double"></i> تحديد الكل كمقروء</button>
+                        <a href="alerts-log.html" class="view-all-link">عرض الكل <i class="fas fa-arrow-left"></i></a>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(panel);
+
+            // Add styles
+            const style = document.createElement('style');
+            style.textContent = `
+                #notificationsPanel { position: fixed; inset: 0; z-index: 9999; display: flex; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+                #notificationsPanel.show { opacity: 1; visibility: visible; }
+                .notifications-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+                .notifications-drawer { position: absolute; left: 0; top: 0; height: 100%; width: 380px; max-width: 100%; background: var(--secondary); box-shadow: 5px 0 20px rgba(0,0,0,0.3); transform: translateX(-100%); transition: transform 0.3s ease; display: flex; flex-direction: column; }
+                #notificationsPanel.show .notifications-drawer { transform: translateX(0); }
+                .notifications-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+                .notifications-header h3 { font-size: 18px; display: flex; align-items: center; gap: 10px; }
+                .notifications-header h3 i { color: var(--accent); }
+                .close-notifications { background: none; border: none; color: var(--light); font-size: 18px; cursor: pointer; padding: 8px; border-radius: 8px; transition: all 0.3s ease; }
+                .close-notifications:hover { background: rgba(239,68,68,0.2); color: var(--danger); }
+                .notifications-tabs { display: flex; gap: 10px; padding: 15px 20px; border-bottom: 1px solid var(--border); }
+                .notif-tab { padding: 8px 16px; background: none; border: 1px solid var(--border); border-radius: 20px; color: var(--light); font-size: 13px; cursor: pointer; transition: all 0.3s ease; font-family: 'Tajawal', sans-serif; }
+                .notif-tab:hover { background: var(--hover); }
+                .notif-tab.active { background: var(--accent); border-color: var(--accent); }
+                .notifications-list { flex: 1; overflow-y: auto; padding: 10px; }
+                .notif-item { display: flex; gap: 12px; padding: 15px; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; margin-bottom: 8px; background: rgba(15,23,42,0.5); border: 1px solid transparent; }
+                .notif-item:hover { background: var(--hover); border-color: var(--accent); }
+                .notif-item.unread { border-right: 3px solid var(--accent); }
+                .notif-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+                .notif-icon.danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+                .notif-icon.warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+                .notif-icon.info { background: rgba(59,130,246,0.15); color: var(--accent); }
+                .notif-icon.success { background: rgba(16,185,129,0.15); color: var(--success); }
+                .notif-content { flex: 1; min-width: 0; }
+                .notif-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+                .notif-text { font-size: 12px; color: rgba(241,245,249,0.6); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .notif-time { font-size: 11px; color: rgba(241,245,249,0.4); }
+                .notifications-footer { padding: 15px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+                .mark-all-read { background: none; border: none; color: var(--accent); font-size: 13px; cursor: pointer; font-family: 'Tajawal', sans-serif; display: flex; align-items: center; gap: 6px; }
+                .mark-all-read:hover { text-decoration: underline; }
+                .view-all-link { color: var(--accent); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+                .view-all-link:hover { text-decoration: underline; }
+            `;
+            document.head.appendChild(style);
+
+            // Event listeners
+            setTimeout(() => panel.classList.add('show'), 10);
+
+            panel.querySelector('.notifications-overlay').addEventListener('click', () => {
+                panel.classList.remove('show');
+            });
+
+            panel.querySelector('.close-notifications').addEventListener('click', () => {
+                panel.classList.remove('show');
+            });
+
+            panel.querySelectorAll('.notif-tab').forEach(tab => {
+                tab.addEventListener('click', function () {
+                    panel.querySelectorAll('.notif-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            panel.querySelector('.mark-all-read').addEventListener('click', function () {
+                panel.querySelectorAll('.notif-item.unread').forEach(item => {
+                    item.classList.remove('unread');
+                });
+                document.querySelector('.notification-badge').style.display = 'none';
+            });
+
+            panel.querySelectorAll('.notif-item').forEach(item => {
+                item.addEventListener('click', function () {
+                    this.classList.remove('unread');
+                    // Navigate to alerts page
+                    window.location.href = 'alerts-log.html';
+                });
+            });
+        }
+
+        // Search Functionality
+        function performSearch(query) {
+            if (!query.trim()) {
+                showToast('الرجاء إدخال كلمة للبحث', 'warning');
+                return;
+            }
+            showToast(`جاري البحث عن: ${query}`, 'info');
+        }
+
+        function highlightSearchResults(query) {
+            // Could implement live search highlighting here
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${type}`;
+
+            const icons = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+
+            // Add styles if not exist
+            if (!document.getElementById('toastStyles')) {
+                const style = document.createElement('style');
+                style.id = 'toastStyles';
+                style.textContent = `
+                    .toast-notification { position: fixed; bottom: 30px; left: 30px; padding: 15px 25px; border-radius: 10px; display: flex; align-items: center; gap: 12px; z-index: 99999; animation: slideInLeft 0.3s ease, fadeOut 0.3s ease 2.7s forwards; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: 'Tajawal', sans-serif; }
+                    .toast-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+                    .toast-error { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+                    .toast-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+                    .toast-info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+                    @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+                    @keyframes fadeOut { to { opacity: 0; transform: translateY(20px); } }
+                `;
+                document.head.appendChild(style);
+            }
+
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Card Action Buttons
+        document.querySelectorAll('.card-action-btn').forEach(btn => {
+            btn.style.cursor = 'pointer';
+            btn.addEventListener('click', function () {
+                const title = this.getAttribute('title');
+                const icon = this.querySelector('i');
+
+                if (title === 'تصدير البيانات') {
+                    showToast('جاري تصدير البيانات...', 'info');
+                    setTimeout(() => showToast('تم تصدير البيانات بنجاح!', 'success'), 1500);
+                } else if (title === 'تصفية') {
+                    showFilterModal();
+                } else if (title === 'تحديث') {
+                    icon.classList.add('fa-spin');
+                    showToast('جاري تحديث البيانات...', 'info');
+                    setTimeout(() => {
+                        icon.classList.remove('fa-spin');
+                        showToast('تم التحديث بنجاح!', 'success');
+                    }, 1000);
+                }
+            });
+        });
+
+        // Filter Modal
+        function showFilterModal() {
+            const modal = document.createElement('div');
+            modal.className = 'filter-modal-overlay';
+            modal.innerHTML = `
+                <div class="filter-modal">
+                    <div class="filter-modal-header">
+                        <h3><i class="fas fa-filter"></i> تصفية البيانات</h3>
+                        <button class="close-filter"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="filter-modal-body">
+                        <div class="filter-group">
+                            <label>مستوى الخطورة</label>
+                            <div class="filter-options">
+                                <label class="filter-checkbox"><input type="checkbox" checked> <span style="color: var(--danger);">عالية</span></label>
+                                <label class="filter-checkbox"><input type="checkbox" checked> <span style="color: var(--warning);">متوسطة</span></label>
+                                <label class="filter-checkbox"><input type="checkbox" checked> <span style="color: var(--success);">منخفضة</span></label>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label>الفترة الزمنية</label>
+                            <select class="filter-select">
+                                <option>آخر ساعة</option>
+                                <option selected>آخر 24 ساعة</option>
+                                <option>آخر 7 أيام</option>
+                                <option>آخر 30 يوم</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-modal-footer">
+                        <button class="filter-btn-cancel">إلغاء</button>
+                        <button class="filter-btn-apply">تطبيق</button>
+                    </div>
+                </div>
+            `;
+
+            const style = document.createElement('style');
+            style.textContent = `
+                .filter-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.2s ease; }
+                .filter-modal { background: var(--secondary); border: 1px solid var(--border); border-radius: 16px; width: 400px; max-width: 90%; animation: scaleIn 0.3s ease; }
+                .filter-modal-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+                .filter-modal-header h3 { font-size: 18px; display: flex; align-items: center; gap: 10px; }
+                .filter-modal-header h3 i { color: var(--accent); }
+                .close-filter { background: none; border: none; color: var(--light); font-size: 18px; cursor: pointer; }
+                .filter-modal-body { padding: 20px; }
+                .filter-group { margin-bottom: 20px; }
+                .filter-group label { display: block; margin-bottom: 10px; font-weight: 500; }
+                .filter-options { display: flex; flex-direction: column; gap: 8px; }
+                .filter-checkbox { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+                .filter-checkbox input { width: 18px; height: 18px; accent-color: var(--accent); }
+                .filter-select { width: 100%; padding: 12px; background: rgba(15,23,42,0.5); border: 1px solid var(--border); border-radius: 8px; color: var(--light); font-family: 'Tajawal', sans-serif; }
+                .filter-modal-footer { padding: 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+                .filter-btn-cancel { padding: 10px 20px; background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--light); cursor: pointer; font-family: 'Tajawal', sans-serif; }
+                .filter-btn-apply { padding: 10px 20px; background: var(--accent); border: none; border-radius: 8px; color: white; cursor: pointer; font-family: 'Tajawal', sans-serif; }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(modal);
+
+            modal.querySelector('.close-filter').addEventListener('click', () => modal.remove());
+            modal.querySelector('.filter-btn-cancel').addEventListener('click', () => modal.remove());
+            modal.querySelector('.filter-btn-apply').addEventListener('click', () => {
+                showToast('تم تطبيق الفلتر', 'success');
+                modal.remove();
+            });
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        // Video Feed Click - Navigate to live broadcast
+        document.querySelectorAll('.video-feed').forEach(feed => {
+            feed.style.cursor = 'pointer';
+            feed.addEventListener('click', function () {
+                window.location.href = 'live-broadcast.html';
+            });
+        });
+
+        // Alert Items Click
+        document.querySelectorAll('.alert-item').forEach(item => {
+            item.style.cursor = 'pointer';
+            item.addEventListener('click', function () {
+                const title = this.querySelector('.alert-title')?.textContent || '';
+                showAlertDetails(title, this);
+            });
+        });
+
+        function showAlertDetails(title, element) {
+            const location = element.querySelector('.alert-info span')?.textContent || '';
+            const badge = element.querySelector('.alert-badge')?.textContent || '';
+            const time = element.querySelector('.alert-time')?.textContent || '';
+
+            const modal = document.createElement('div');
+            modal.className = 'filter-modal-overlay';
+            modal.innerHTML = `
+                <div class="filter-modal" style="width: 450px;">
+                    <div class="filter-modal-header">
+                        <h3><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> تفاصيل التنبيه</h3>
+                        <button class="close-filter"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="filter-modal-body">
+                        <h4 style="margin-bottom: 15px; font-size: 16px;">${title}</h4>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; color: rgba(241,245,249,0.7);">
+                                <i class="fas fa-map-marker-alt" style="color: var(--accent);"></i>
+                                <span>${location}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; color: rgba(241,245,249,0.7);">
+                                <i class="fas fa-clock" style="color: var(--accent);"></i>
+                                <span>${time}</span>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <span class="alert-badge ${badge.includes('عالية') ? 'badge-high' : badge.includes('متوسطة') ? 'badge-medium' : 'badge-low'}">${badge}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-modal-footer">
+                        <button class="filter-btn-cancel" onclick="window.location.href='alerts-log.html'">عرض السجل</button>
+                        <button class="filter-btn-apply" onclick="window.location.href='live-broadcast.html'">مشاهدة البث</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.querySelector('.close-filter').addEventListener('click', () => modal.remove());
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        // Drone Items Click
+        document.querySelectorAll('.drone-item').forEach(item => {
+            item.style.cursor = 'pointer';
+            item.addEventListener('click', function () {
+                window.location.href = 'drone-management.html';
+            });
+        });
+
+        // Stat Cards Click
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', function () {
+                const title = this.querySelector('.stat-title')?.textContent || '';
+                if (title.includes('طائرات') || title.includes('الطيران')) {
+                    window.location.href = 'drone-management.html';
+                } else if (title.includes('تهديد') || title.includes('التنبيهات')) {
+                    window.location.href = 'alerts-log.html';
+                } else if (title.includes('التغطية')) {
+                    window.location.href = 'analytics.html';
+                } else {
+                    window.location.href = 'analytics.html';
+                }
+            });
+        });
+
+        // Map Type Buttons
+        document.querySelectorAll('.map-type-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.map-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const type = this.dataset.type;
+                let url = '';
+
+                switch (type) {
+                    case 'dark':
+                        url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+                        break;
+                    case 'satellite':
+                        url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+                        break;
+                    case 'streets':
+                        url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+                        break;
+                    case 'terrain':
+                        url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+                        break;
+                }
+
+                if (typeof currentTileLayer !== 'undefined' && typeof map !== 'undefined') {
+                    map.removeLayer(currentTileLayer);
+                    currentTileLayer = L.tileLayer(url, { maxZoom: 19 }).addTo(map);
+                }
+
+                showToast(`تم تغيير نوع الخريطة إلى: ${this.textContent}`, 'success');
+            });
+        });
+
+        // Sidebar footer - user click
+        const userInfo = document.querySelector('.sidebar-footer');
+        if (userInfo) {
+            userInfo.style.cursor = 'pointer';
+            userInfo.addEventListener('click', function () {
+                window.location.href = 'users.html';
+            });
+        }
+
+        // Analytics card click
+        const analyticsCard = document.querySelector('.analytics-card');
+        if (analyticsCard) {
+            analyticsCard.style.cursor = 'pointer';
+            analyticsCard.addEventListener('click', function (e) {
+                // Don't navigate if clicking on action buttons
+                if (e.target.closest('.card-action-btn')) return;
+                window.location.href = 'analytics.html';
+            });
+        }
+
+        // Alerts panel click
+        const alertsPanel = document.querySelector('.alerts-panel .card-header');
+        if (alertsPanel) {
+            alertsPanel.style.cursor = 'pointer';
+            alertsPanel.addEventListener('click', function (e) {
+                if (e.target.closest('.card-action-btn')) return;
+                window.location.href = 'alerts-log.html';
+            });
+        }
+
+        // Toggle Facility Panel (show/hide)
+        const toggleFacilityPanelBtn = document.getElementById('toggleFacilityPanel');
+        const selectedFacilityPanel = document.getElementById('selectedFacilityPanel');
+
+        if (toggleFacilityPanelBtn && selectedFacilityPanel) {
+            toggleFacilityPanelBtn.addEventListener('click', function () {
+                selectedFacilityPanel.classList.toggle('collapsed');
+                const icon = this.querySelector('i');
+                if (selectedFacilityPanel.classList.contains('collapsed')) {
+                    icon.className = 'fas fa-chevron-up';
+                } else {
+                    icon.className = 'fas fa-chevron-down';
+                }
+            });
+        }
+
+        // Search Functionality
+        const dashboardSearchInput = document.getElementById('dashboardSearch');
+        const searchDropdownEl = document.getElementById('searchDropdown');
+        const suggestionItems = document.querySelectorAll('.suggestion-item');
+
+        // Define search mappings - keywords to pages
+        const searchMappings = {
+            'الطائرات': 'drone-management.html',
+            'طائرات': 'drone-management.html',
+            'drone': 'drone-management.html',
+            'التنبيهات': 'alerts-log.html',
+            'تنبيهات': 'alerts-log.html',
+            'alerts': 'alerts-log.html',
+            'المنشآت': 'interactive-map.html',
+            'منشآت': 'interactive-map.html',
+            'facilities': 'interactive-map.html',
+            'التهديدات': 'alerts-log.html',
+            'تهديدات': 'alerts-log.html',
+            'threats': 'alerts-log.html',
+            'الخريطة': 'interactive-map.html',
+            'خريطة': 'interactive-map.html',
+            'map': 'interactive-map.html',
+            'البث': 'live-broadcast.html',
+            'بث': 'live-broadcast.html',
+            'live': 'live-broadcast.html',
+            'broadcast': 'live-broadcast.html',
+            'مباشر': 'live-broadcast.html',
+            'التحليلات': 'analytics.html',
+            'تحليلات': 'analytics.html',
+            'analytics': 'analytics.html',
+            'التقارير': 'reports.html',
+            'تقارير': 'reports.html',
+            'reports': 'reports.html',
+            'الإعدادات': 'settings.html',
+            'إعدادات': 'settings.html',
+            'settings': 'settings.html',
+            'المستخدمين': 'users.html',
+            'مستخدمين': 'users.html',
+            'users': 'users.html'
+        };
+
+        // Function to navigate based on search term
+        function navigateToPage(searchTerm) {
+            const term = searchTerm.trim().toLowerCase();
+
+            // Check for exact match first
+            for (const [keyword, page] of Object.entries(searchMappings)) {
+                if (term.includes(keyword.toLowerCase()) || keyword.toLowerCase().includes(term)) {
+                    window.location.href = page;
+                    return true;
+                }
+            }
+
+            // Show toast if no match found
+            if (typeof showToast === 'function') {
+                showToast('لم يتم العثور على نتائج للبحث: ' + searchTerm, 'warning');
+            }
+            return false;
+        }
+
+        // Handle search input enter key
+        if (dashboardSearchInput) {
+            dashboardSearchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const searchTerm = this.value.trim();
+                    if (searchTerm) {
+                        navigateToPage(searchTerm);
+                    }
+                }
+            });
+        }
+
+        // Handle suggestion item clicks
+        suggestionItems.forEach(item => {
+            item.addEventListener('click', function () {
+                const searchTerm = this.getAttribute('data-search') || this.textContent.trim();
+                navigateToPage(searchTerm);
+            });
+        });
+
+    </script>
+
+
+    <!-- Facility Management JS -->
+    <script src="js/facility.js"></script>
+    <script src="js/rasd-utils.js"></script>
+</body>
+
+</html>

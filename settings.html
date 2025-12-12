@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رَصْد - إعدادات النظام</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --light: #f1f5f9;
+            --dark: #020617;
+            --border: rgba(148, 163, 184, 0.2);
+            --card-bg: rgba(30, 41, 59, 0.8);
+            --hover: rgba(59, 130, 246, 0.1);
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--light);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            height: 70px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: var(--accent);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .save-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            background-color: var(--success);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:hover {
+            background-color: #059669;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Settings Layout */
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+        }
+
+        /* Sidebar Nav */
+        .settings-nav {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background-color: var(--hover);
+        }
+
+        .nav-item.active {
+            background-color: var(--accent);
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Settings Sections */
+        .settings-content {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .settings-section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--accent);
+        }
+
+        .section-body {
+            padding: 20px;
+        }
+
+        /* Form Elements */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .setting-desc {
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        .setting-control {
+            margin-right: 20px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: rgba(148, 163, 184, 0.3);
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            right: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: var(--accent);
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(-24px);
+        }
+
+        /* Input */
+        .form-input {
+            padding: 10px 15px;
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            min-width: 200px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Select */
+        .form-select {
+            padding: 10px 15px;
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            min-width: 200px;
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Range Slider */
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .range-slider {
+            width: 150px;
+            height: 6px;
+            accent-color: var(--accent);
+        }
+
+        .range-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent);
+            min-width: 40px;
+        }
+
+        /* Color Picker */
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .color-picker::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .color-picker::-webkit-color-swatch {
+            border: none;
+        }
+
+        /* Danger Zone */
+        .danger-zone {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .danger-zone .section-header {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, transparent 100%);
+        }
+
+        .danger-zone .section-title i {
+            color: var(--danger);
+        }
+
+        .danger-btn {
+            padding: 10px 20px;
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            color: var(--danger);
+            font-size: 13px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .danger-btn:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        @media (max-width: 900px) {
+            .settings-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-nav {
+                position: static;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="header-right">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                <span>العودة للوحة التحكم</span>
+            </a>
+            <div class="page-title">
+                <i class="fas fa-cog"></i>
+                <span>إعدادات النظام</span>
+            </div>
+        </div>
+        <div class="header-left">
+            <button class="save-btn" onclick="saveSettings()">
+                <i class="fas fa-save"></i>
+                حفظ التغييرات
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="settings-layout">
+            <!-- Navigation -->
+            <nav class="settings-nav">
+                <div class="nav-item active" data-section="general">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>إعدادات عامة</span>
+                </div>
+                <div class="nav-item" data-section="map">
+                    <i class="fas fa-map"></i>
+                    <span>إعدادات الخريطة</span>
+                </div>
+                <div class="nav-item" data-section="drones">
+                    <i class="fas fa-drone"></i>
+                    <span>إعدادات الطائرات</span>
+                </div>
+                <div class="nav-item" data-section="alerts">
+                    <i class="fas fa-bell"></i>
+                    <span>إعدادات التنبيهات</span>
+                </div>
+                <div class="nav-item" data-section="security">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>الأمان</span>
+                </div>
+                <div class="nav-item" data-section="backup">
+                    <i class="fas fa-database"></i>
+                    <span>النسخ الاحتياطي</span>
+                </div>
+            </nav>
+
+            <!-- Settings Content -->
+            <div class="settings-content">
+                <!-- General Settings -->
+                <section class="settings-section" id="general">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-sliders-h"></i>
+                            إعدادات عامة
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">اللغة</div>
+                                <div class="setting-desc">اختر لغة واجهة المستخدم</div>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select">
+                                    <option>العربية</option>
+                                    <option>English</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">المنطقة الزمنية</div>
+                                <div class="setting-desc">تحديد المنطقة الزمنية للنظام</div>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select">
+                                    <option>توقيت السعودية (GMT+3)</option>
+                                    <option>توقيت الإمارات (GMT+4)</option>
+                                    <option>توقيت مصر (GMT+2)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">الوضع الليلي التلقائي</div>
+                                <div class="setting-desc">تفعيل الوضع الداكن تلقائياً حسب وقت النظام</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">التحديث التلقائي</div>
+                                <div class="setting-desc">تحديث البيانات تلقائياً على الخريطة</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Map Settings -->
+                <section class="settings-section" id="map">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-map"></i>
+                            إعدادات الخريطة
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">نوع الخريطة الافتراضي</div>
+                                <div class="setting-desc">الخريطة التي تظهر عند فتح التطبيق</div>
+                            </div>
+                            <div class="setting-control">
+                                <select class="form-select">
+                                    <option>داكنة</option>
+                                    <option>فضائية</option>
+                                    <option>طرق</option>
+                                    <option>تضاريس</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">مستوى التكبير الافتراضي</div>
+                                <div class="setting-desc">مستوى التكبير عند فتح الخريطة</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" class="range-slider" min="5" max="18" value="14" id="zoomRange">
+                                    <span class="range-value" id="zoomValue">14</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">لون المنشآت</div>
+                                <div class="setting-desc">اللون الافتراضي للمنشآت على الخريطة</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="color" class="color-picker" value="#10b981">
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">إظهار الإحداثيات</div>
+                                <div class="setting-desc">عرض إحداثيات مؤشر الماوس</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Drone Settings -->
+                <section class="settings-section" id="drones">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-drone"></i>
+                            إعدادات الطائرات
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">ارتفاع الطيران الافتراضي</div>
+                                <div class="setting-desc">الارتفاع الافتراضي للطائرات بالمتر</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="number" class="form-input" value="100" style="width: 100px;">
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">حد البطارية للعودة</div>
+                                <div class="setting-desc">نسبة البطارية التي تبدأ عندها العودة التلقائية</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="range-container">
+                                    <input type="range" class="range-slider" min="10" max="40" value="20"
+                                        id="batteryRange">
+                                    <span class="range-value" id="batteryValue">20%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">العودة التلقائية عند فقدان الاتصال</div>
+                                <div class="setting-desc">عودة الطائرة للقاعدة عند انقطاع الإشارة</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Alert Settings -->
+                <section class="settings-section" id="alerts">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-bell"></i>
+                            إعدادات التنبيهات
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">صوت التنبيهات</div>
+                                <div class="setting-desc">تشغيل صوت عند ظهور تنبيه جديد</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">إشعارات سطح المكتب</div>
+                                <div class="setting-desc">إظهار إشعارات على سطح المكتب</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">إرسال بريد إلكتروني</div>
+                                <div class="setting-desc">إرسال تنبيهات عالية الخطورة للبريد</div>
+                            </div>
+                            <div class="setting-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Danger Zone -->
+                <section class="settings-section danger-zone" id="danger">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            منطقة الخطر
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">إعادة ضبط الإعدادات</div>
+                                <div class="setting-desc">إرجاع جميع الإعدادات للقيم الافتراضية</div>
+                            </div>
+                            <div class="setting-control">
+                                <button class="danger-btn" onclick="resetSettings()">
+                                    <i class="fas fa-undo"></i> إعادة الضبط
+                                </button>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">حذف جميع البيانات</div>
+                                <div class="setting-desc">حذف جميع المنشآت والتقارير والتنبيهات</div>
+                            </div>
+                            <div class="setting-control">
+                                <button class="danger-btn" onclick="clearData()">
+                                    <i class="fas fa-trash"></i> حذف البيانات
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function () {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                const section = document.getElementById(this.dataset.section);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Range sliders
+        document.getElementById('zoomRange').addEventListener('input', function () {
+            document.getElementById('zoomValue').textContent = this.value;
+        });
+
+        document.getElementById('batteryRange').addEventListener('input', function () {
+            document.getElementById('batteryValue').textContent = this.value + '%';
+        });
+
+        // Save settings
+        function saveSettings() {
+            const btn = document.querySelector('.save-btn');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check"></i> تم الحفظ';
+                btn.style.backgroundColor = '#10b981';
+
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.style.backgroundColor = '';
+                }, 2000);
+            }, 1000);
+        }
+
+        // Reset settings
+        function resetSettings() {
+            if (confirm('هل أنت متأكد من إعادة ضبط جميع الإعدادات؟')) {
+                alert('تم إعادة ضبط الإعدادات بنجاح');
+                location.reload();
+            }
+        }
+
+        // Clear data
+        function clearData() {
+            if (confirm('⚠️ تحذير: سيتم حذف جميع البيانات نهائياً!\n\nهل أنت متأكد؟')) {
+                if (confirm('هذا الإجراء لا يمكن التراجع عنه. المتابعة؟')) {
+                    localStorage.clear();
+                    alert('تم حذف جميع البيانات');
+                }
+            }
+        }
+    </script>
+    <script src="js/rasd-utils.js"></script>
+</body>
+
+</html>

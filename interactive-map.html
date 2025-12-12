@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رَصْد - الخريطة التفاعلية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --light: #f1f5f9;
+            --dark: #020617;
+            --border: rgba(148, 163, 184, 0.2);
+            --card-bg: rgba(30, 41, 59, 0.8);
+            --hover: rgba(59, 130, 246, 0.1);
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--light);
+            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            height: 70px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: var(--accent);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .header-btn:hover {
+            background-color: var(--hover);
+            border-color: var(--accent);
+        }
+
+        /* Main Container */
+        .map-page-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            height: calc(100vh - 70px);
+        }
+
+        /* Sidebar Panel */
+        .sidebar-panel {
+            background-color: var(--secondary);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-section {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: rgba(59, 130, 246, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .panel-header:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .panel-title i {
+            color: var(--accent);
+        }
+
+        .panel-toggle {
+            color: var(--light);
+            transition: transform 0.3s ease;
+        }
+
+        .panel-section.collapsed .panel-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .panel-section.collapsed .panel-body {
+            display: none;
+        }
+
+        .panel-body {
+            padding: 15px 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .panel-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .panel-body::-webkit-scrollbar-thumb {
+            background-color: var(--border);
+            border-radius: 10px;
+        }
+
+        /* Drawing Tools */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .tool-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.5);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .tool-btn:hover {
+            background-color: var(--hover);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .tool-btn.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .tool-btn i {
+            font-size: 24px;
+        }
+
+        .tool-btn span {
+            font-size: 12px;
+        }
+
+        /* Facility List */
+        .facility-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .facility-item {
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .facility-item:hover {
+            border-color: var(--accent);
+            background-color: var(--hover);
+        }
+
+        .facility-item.selected {
+            border-color: var(--accent);
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+
+        .facility-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .facility-name {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .facility-name i {
+            color: var(--success);
+        }
+
+        .facility-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .facility-action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            background-color: transparent;
+            color: var(--light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .facility-action-btn:hover {
+            background-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .facility-action-btn.delete:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .facility-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .facility-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .facility-info-label {
+            font-size: 10px;
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        .facility-info-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--light);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--accent);
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .empty-state small {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* Selected Facility Details */
+        .details-section {
+            background-color: rgba(59, 130, 246, 0.05);
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .details-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .detail-card {
+            background-color: rgba(15, 23, 42, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .detail-card-title {
+            font-size: 11px;
+            color: rgba(241, 245, 249, 0.5);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-card-title i {
+            color: var(--accent);
+        }
+
+        .detail-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--light);
+        }
+
+        .detail-value.mono {
+            font-family: 'Consolas', 'Monaco', monospace;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .coords-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .coord-item {
+            background-color: rgba(59, 130, 246, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .coord-label {
+            font-size: 10px;
+            color: rgba(241, 245, 249, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .coord-value {
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: var(--accent);
+        }
+
+        /* Map Container */
+        .map-container {
+            position: relative;
+            height: 100%;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #0f172a;
+        }
+
+        /* Drawing Mode Indicator */
+        .drawing-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--accent);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .drawing-indicator.active {
+            display: flex;
+        }
+
+        .drawing-indicator .cancel-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .drawing-indicator .cancel-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Map Controls */
+        .map-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .map-control-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            border: none;
+            background-color: rgba(30, 41, 59, 0.95);
+            color: var(--light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            will-change: transform, background-color;
+        }
+
+        .map-control-btn:hover {
+            background-color: var(--accent);
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .map-control-btn:active {
+            transform: scale(0.95);
+            background-color: var(--accent-dark);
+        }
+
+        /* Coordinates Display */
+        .coords-display {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(30, 41, 59, 0.95);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .coords-display-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .coords-display-item i {
+            color: var(--accent);
+        }
+
+        .coords-display-item span {
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: var(--light);
+        }
+
+        /* Map Type Selector */
+        .map-type-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 5px;
+            background-color: rgba(30, 41, 59, 0.95);
+            padding: 5px;
+            border-radius: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .map-type-btn {
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: none;
+            background-color: transparent;
+            color: var(--light);
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .map-type-btn:hover {
+            background-color: var(--hover);
+        }
+
+        .map-type-btn.active {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        /* Legend */
+        .map-legend {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background-color: rgba(30, 41, 59, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .legend-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 4px 30px rgba(59, 130, 246, 0.6);
+            }
+        }
+
+        /* Leaflet Customizations */
+        .leaflet-tooltip {
+            background-color: rgba(30, 41, 59, 0.95) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 8px !important;
+            padding: 10px 15px !important;
+            color: var(--light) !important;
+            font-family: 'Tajawal', sans-serif !important;
+            direction: rtl !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .leaflet-tooltip-right:before {
+            border-right-color: rgba(30, 41, 59, 0.95) !important;
+        }
+
+        .leaflet-tooltip-left:before {
+            border-left-color: rgba(30, 41, 59, 0.95) !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .map-page-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar-panel {
+                position: absolute;
+                top: 70px;
+                right: 0;
+                width: 320px;
+                height: calc(100vh - 70px);
+                z-index: 1001;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar-panel.open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="header-right">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                <span>العودة للوحة التحكم</span>
+            </a>
+            <div class="page-title">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>الخريطة التفاعلية - إدارة المنشآت</span>
+            </div>
+        </div>
+        <div class="header-left">
+            <button class="header-btn" id="exportDataBtn" title="تصدير البيانات">
+                <i class="fas fa-file-export"></i>
+            </button>
+            <button class="header-btn" id="importDataBtn" title="استيراد البيانات">
+                <i class="fas fa-file-import"></i>
+            </button>
+            <button class="header-btn" id="fullscreenBtn" title="ملء الشاشة">
+                <i class="fas fa-expand"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="map-page-container">
+        <!-- Sidebar Panel -->
+        <div class="sidebar-panel">
+            <!-- Drawing Tools Section -->
+            <div class="panel-section">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-tools"></i>
+                        <span>أدوات الرسم</span>
+                    </div>
+                    <i class="fas fa-chevron-down panel-toggle"></i>
+                </div>
+                <div class="panel-body">
+                    <div class="tool-grid">
+                        <button class="tool-btn" id="drawRectTool" title="رسم مستطيل">
+                            <i class="fas fa-vector-square"></i>
+                            <span>رسم مستطيل</span>
+                        </button>
+                        <button class="tool-btn" id="drawPolyTool" title="رسم شكل حر">
+                            <i class="fas fa-draw-polygon"></i>
+                            <span>رسم شكل حر</span>
+                        </button>
+                        <button class="tool-btn" id="drawCircleTool" title="رسم دائرة">
+                            <i class="fas fa-circle"></i>
+                            <span>رسم دائرة</span>
+                        </button>
+                        <button class="tool-btn" id="addMarkerTool" title="إضافة علامة">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>إضافة علامة</span>
+                        </button>
+                        <button class="tool-btn" id="selectTool" title="تحديد">
+                            <i class="fas fa-mouse-pointer"></i>
+                            <span>تحديد</span>
+                        </button>
+                        <button class="tool-btn" id="clearAllTool" title="مسح الكل">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>مسح الكل</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Facilities List Section -->
+            <div class="panel-section">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-building"></i>
+                        <span>المنشآت المحددة</span>
+                        <span id="facilityCount"
+                            style="background: var(--accent); padding: 2px 8px; border-radius: 10px; font-size: 11px;">0</span>
+                    </div>
+                    <i class="fas fa-chevron-down panel-toggle"></i>
+                </div>
+                <div class="panel-body">
+                    <div class="facility-list" id="facilityList">
+                        <div class="empty-state" id="emptyState">
+                            <i class="fas fa-building"></i>
+                            <p>لا توجد منشآت محددة</p>
+                            <small>استخدم أدوات الرسم لإضافة منشأة</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selected Facility Details Section -->
+            <div class="panel-section details-section" id="detailsSection" style="display: none;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-info-circle"></i>
+                        <span>تفاصيل المنشأة</span>
+                    </div>
+                    <i class="fas fa-chevron-down panel-toggle"></i>
+                </div>
+                <div class="panel-body">
+                    <div class="details-grid">
+                        <!-- Name -->
+                        <div class="detail-card">
+                            <div class="detail-card-title">
+                                <i class="fas fa-tag"></i>
+                                اسم المنشأة
+                            </div>
+                            <div class="detail-value" id="detailName">-</div>
+                        </div>
+
+                        <!-- Coordinates -->
+                        <div class="detail-card">
+                            <div class="detail-card-title">
+                                <i class="fas fa-map-pin"></i>
+                                إحداثيات المركز
+                            </div>
+                            <div class="coords-grid">
+                                <div class="coord-item">
+                                    <div class="coord-label">خط العرض</div>
+                                    <div class="coord-value" id="detailLat">-</div>
+                                </div>
+                                <div class="coord-item">
+                                    <div class="coord-label">خط الطول</div>
+                                    <div class="coord-value" id="detailLng">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dimensions -->
+                        <div class="detail-card">
+                            <div class="detail-card-title">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                                الأبعاد
+                            </div>
+                            <div class="coords-grid">
+                                <div class="coord-item">
+                                    <div class="coord-label">العرض</div>
+                                    <div class="coord-value" id="detailWidth">-</div>
+                                </div>
+                                <div class="coord-item">
+                                    <div class="coord-label">الطول</div>
+                                    <div class="coord-value" id="detailHeight">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Area -->
+                        <div class="detail-card">
+                            <div class="detail-card-title">
+                                <i class="fas fa-ruler-combined"></i>
+                                المساحة
+                            </div>
+                            <div class="detail-value" id="detailArea">-</div>
+                        </div>
+
+                        <!-- Perimeter -->
+                        <div class="detail-card">
+                            <div class="detail-card-title">
+                                <i class="fas fa-border-style"></i>
+                                المحيط
+                            </div>
+                            <div class="detail-value" id="detailPerimeter">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+
+            <!-- Drawing Mode Indicator -->
+            <div class="drawing-indicator" id="drawingIndicator">
+                <i class="fas fa-draw-polygon"></i>
+                <span id="drawingText">وضع الرسم</span>
+                <button class="cancel-btn" id="saveDrawing" style="background-color: #10b981; display: none;">
+                    <i class="fas fa-check"></i> حفظ الشكل
+                </button>
+                <button class="cancel-btn" id="cancelDrawing">إلغاء</button>
+            </div>
+
+            <!-- Map Type Selector -->
+            <div class="map-type-selector">
+                <button class="map-type-btn active" data-type="dark">
+                    <i class="fas fa-moon"></i>
+                    داكن
+                </button>
+                <button class="map-type-btn" data-type="satellite">
+                    <i class="fas fa-satellite"></i>
+                    صناعي
+                </button>
+                <button class="map-type-btn" data-type="streets">
+                    <i class="fas fa-road"></i>
+                    طرق
+                </button>
+                <button class="map-type-btn" data-type="terrain">
+                    <i class="fas fa-mountain"></i>
+                    تضاريس
+                </button>
+            </div>
+
+            <!-- Map Legend -->
+            <div class="map-legend">
+                <div class="legend-title">دليل الألوان</div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--success);"></div>
+                    <span>منشأة محددة</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--accent);"></div>
+                    <span>منشأة مختارة</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--warning);"></div>
+                    <span>علامة</span>
+                </div>
+            </div>
+
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <button class="map-control-btn" id="zoomIn" title="تكبير">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="map-control-btn" id="zoomOut" title="تصغير">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button class="map-control-btn" id="centerMap" title="وسط الخريطة">
+                    <i class="fas fa-crosshairs"></i>
+                </button>
+            </div>
+
+            <!-- Coordinates Display -->
+            <div class="coords-display">
+                <div class="coords-display-item">
+                    <i class="fas fa-map-pin"></i>
+                    <span id="mouseCoords">24.7136, 46.6753</span>
+                </div>
+                <div class="coords-display-item">
+                    <i class="fas fa-search-plus"></i>
+                    <span id="zoomLevel">مستوى التكبير: 14</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <script>
+        // ==================== MAP INITIALIZATION ====================
+        const map = L.map('map', {
+            center: [24.7136, 46.6753],
+            zoom: 14,
+            zoomControl: false,
+            attributionControl: false,
+            // Smooth zoom settings
+            zoomSnap: 0.25,
+            zoomDelta: 0.5,
+            wheelDebounceTime: 40,
+            wheelPxPerZoomLevel: 120,
+            // Inertia for smooth panning
+            inertia: true,
+            inertiaDeceleration: 2500,
+            inertiaMaxSpeed: 1800,
+            easeLinearity: 0.2,
+            // Bounce effect at edges
+            maxBoundsViscosity: 0.8,
+            // Double-click zoom settings
+            doubleClickZoom: 'center',
+            // Keyboard navigation
+            keyboard: true,
+            keyboardPanDelta: 100
+        });
+
+        // Default dark theme
+        let currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // ==================== VARIABLES ====================
+        let facilities = [];
+        let facilityCounter = 0;
+        let selectedFacility = null;
+        let drawingMode = null;
+        let tempPoints = [];
+        let tempLayer = null;
+
+        // ==================== MAP TYPE SWITCHING ====================
+        document.querySelectorAll('.map-type-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.map-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                map.removeLayer(currentTileLayer);
+
+                const type = this.dataset.type;
+                let url = '';
+
+                switch (type) {
+                    case 'dark':
+                        url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+                        break;
+                    case 'satellite':
+                        url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+                        break;
+                    case 'streets':
+                        url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+                        break;
+                    case 'terrain':
+                        url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+                        break;
+                }
+
+                currentTileLayer = L.tileLayer(url, { maxZoom: 19 }).addTo(map);
+            });
+        });
+
+        // ==================== MAP CONTROLS (ENHANCED) ====================
+        let isAnimating = false;
+
+        // Smooth zoom in with animation
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            if (isAnimating) return;
+            isAnimating = true;
+            const currentZoom = map.getZoom();
+            const targetZoom = Math.min(currentZoom + 1, 19);
+            map.flyTo(map.getCenter(), targetZoom, {
+                animate: true,
+                duration: 0.35,
+                easeLinearity: 0.25
+            });
+            setTimeout(() => isAnimating = false, 400);
+        });
+
+        // Smooth zoom out with animation
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            if (isAnimating) return;
+            isAnimating = true;
+            const currentZoom = map.getZoom();
+            const targetZoom = Math.max(currentZoom - 1, 3);
+            map.flyTo(map.getCenter(), targetZoom, {
+                animate: true,
+                duration: 0.35,
+                easeLinearity: 0.25
+            });
+            setTimeout(() => isAnimating = false, 400);
+        });
+
+        // Smooth fly to center with animation
+        document.getElementById('centerMap').addEventListener('click', () => {
+            if (isAnimating) return;
+            isAnimating = true;
+            map.flyTo([24.7136, 46.6753], 14, {
+                animate: true,
+                duration: 1.2,
+                easeLinearity: 0.15
+            });
+            setTimeout(() => isAnimating = false, 1300);
+        });
+
+        // Update coordinates on mouse move
+        map.on('mousemove', (e) => {
+            document.getElementById('mouseCoords').textContent =
+                `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+        });
+
+        map.on('zoomend', () => {
+            document.getElementById('zoomLevel').textContent = `مستوى التكبير: ${map.getZoom().toFixed(1)}`;
+        });
+
+        // ==================== KEYBOARD NAVIGATION ====================
+        const panSpeed = 80; // pixels per keypress
+        let keysPressedMap = {};
+
+        document.addEventListener('keydown', (e) => {
+            // Avoid triggering when typing in input fields
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            keysPressedMap[e.key] = true;
+
+            const center = map.getCenter();
+            const zoom = map.getZoom();
+            const panDelta = panSpeed / Math.pow(2, zoom - 10);
+
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    map.panBy([0, -panSpeed], { animate: true, duration: 0.15 });
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    map.panBy([0, panSpeed], { animate: true, duration: 0.15 });
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    map.panBy([-panSpeed, 0], { animate: true, duration: 0.15 });
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    map.panBy([panSpeed, 0], { animate: true, duration: 0.15 });
+                    e.preventDefault();
+                    break;
+                case '+':
+                case '=':
+                    document.getElementById('zoomIn').click();
+                    e.preventDefault();
+                    break;
+                case '-':
+                case '_':
+                    document.getElementById('zoomOut').click();
+                    e.preventDefault();
+                    break;
+                case 'Home':
+                case 'h':
+                case 'H':
+                    document.getElementById('centerMap').click();
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            delete keysPressedMap[e.key];
+        });
+
+        // ==================== PANEL COLLAPSE ====================
+        document.querySelectorAll('.panel-header').forEach(header => {
+            header.addEventListener('click', function () {
+                this.parentElement.classList.toggle('collapsed');
+            });
+        });
+
+        // ==================== DRAWING TOOLS ====================
+        document.getElementById('drawRectTool').addEventListener('click', function () {
+            activateDrawing('rectangle', this);
+        });
+
+        document.getElementById('drawPolyTool').addEventListener('click', function () {
+            activateDrawing('polygon', this);
+        });
+
+        document.getElementById('drawCircleTool').addEventListener('click', function () {
+            activateDrawing('circle', this);
+        });
+
+        document.getElementById('addMarkerTool').addEventListener('click', function () {
+            activateDrawing('marker', this);
+        });
+
+        document.getElementById('selectTool').addEventListener('click', function () {
+            cancelDrawing();
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+
+        document.getElementById('clearAllTool').addEventListener('click', function () {
+            if (facilities.length === 0) return;
+            if (confirm('هل أنت متأكد من حذف جميع المنشآت؟')) {
+                facilities.forEach(f => map.removeLayer(f.layer));
+                facilities = [];
+                selectedFacility = null;
+                facilityCounter = 0;
+                updateFacilityList();
+                document.getElementById('detailsSection').style.display = 'none';
+
+                // Auto-save to localStorage for sync with main dashboard
+                autoSaveToStorage();
+            }
+        });
+
+        document.getElementById('cancelDrawing').addEventListener('click', cancelDrawing);
+
+        // Save drawing button handler
+        document.getElementById('saveDrawing').addEventListener('click', function () {
+            if (drawingMode === 'polygon' && tempPoints.length >= 3) {
+                completePolygon();
+            }
+        });
+
+        function activateDrawing(mode, button) {
+            cancelDrawing();
+
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+
+            drawingMode = mode;
+            tempPoints = [];
+
+            const indicator = document.getElementById('drawingIndicator');
+            indicator.classList.add('active');
+
+            // Show/hide save button based on mode
+            const saveBtn = document.getElementById('saveDrawing');
+            if (mode === 'polygon') {
+                saveBtn.style.display = 'inline-block';
+            } else {
+                saveBtn.style.display = 'none';
+            }
+
+            let text = '';
+            switch (mode) {
+                case 'rectangle':
+                    text = 'انقر على نقطتين لتحديد المستطيل';
+                    break;
+                case 'polygon':
+                    text = 'انقر لتحديد الزوايا (3 نقاط على الأقل)، ثم اضغط "حفظ الشكل"';
+                    break;
+                case 'circle':
+                    text = 'انقر لتحديد المركز ثم انقر مرة أخرى لتحديد نصف القطر';
+                    break;
+                case 'marker':
+                    text = 'انقر لإضافة علامة';
+                    break;
+            }
+            document.getElementById('drawingText').textContent = text;
+
+            document.getElementById('map').style.cursor = 'crosshair';
+
+            map.on('click', handleMapClick);
+            map.on('dblclick', handleMapDblClick);
+        }
+
+        function cancelDrawing() {
+            drawingMode = null;
+            tempPoints = [];
+
+            if (tempLayer) {
+                map.removeLayer(tempLayer);
+                tempLayer = null;
+            }
+
+            document.getElementById('drawingIndicator').classList.remove('active');
+            document.getElementById('saveDrawing').style.display = 'none';
+            document.getElementById('map').style.cursor = '';
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+
+            map.off('click', handleMapClick);
+            map.off('dblclick', handleMapDblClick);
+        }
+
+        function handleMapClick(e) {
+            if (!drawingMode) return;
+
+            if (drawingMode === 'marker') {
+                addMarker(e.latlng);
+                cancelDrawing();
+                return;
+            }
+
+            tempPoints.push(e.latlng);
+
+            // Draw temp marker
+            const marker = L.circleMarker(e.latlng, {
+                radius: 6,
+                fillColor: '#3b82f6',
+                fillOpacity: 1,
+                color: '#fff',
+                weight: 2
+            }).addTo(map);
+
+            if (!tempLayer) {
+                tempLayer = L.layerGroup().addTo(map);
+            }
+            tempLayer.addLayer(marker);
+
+            if (drawingMode === 'rectangle' && tempPoints.length === 2) {
+                completeRectangle();
+            }
+
+            if (drawingMode === 'circle' && tempPoints.length === 2) {
+                completeCircle();
+            }
+
+            if (drawingMode === 'polygon' && tempPoints.length > 1) {
+                const line = L.polyline([
+                    tempPoints[tempPoints.length - 2],
+                    tempPoints[tempPoints.length - 1]
+                ], {
+                    color: '#3b82f6',
+                    weight: 2,
+                    dashArray: '5, 5'
+                });
+                tempLayer.addLayer(line);
+            }
+        }
+
+        function handleMapDblClick(e) {
+            if (drawingMode === 'polygon' && tempPoints.length >= 3) {
+                L.DomEvent.stopPropagation(e);
+                completePolygon();
+            }
+        }
+
+        function completeRectangle() {
+            const bounds = L.latLngBounds(tempPoints[0], tempPoints[1]);
+            const coords = [
+                bounds.getNorthWest(),
+                bounds.getNorthEast(),
+                bounds.getSouthEast(),
+                bounds.getSouthWest()
+            ];
+
+            addFacility(`منشأة ${++facilityCounter}`, coords, 'rectangle');
+            cancelDrawing();
+        }
+
+        function completePolygon() {
+            addFacility(`منشأة ${++facilityCounter}`, tempPoints, 'polygon');
+            cancelDrawing();
+        }
+
+        function completeCircle() {
+            const center = tempPoints[0];
+            const edge = tempPoints[1];
+            const radius = center.distanceTo(edge);
+
+            addCircleFacility(`منشأة ${++facilityCounter}`, center, radius);
+            cancelDrawing();
+        }
+
+        function addMarker(latlng) {
+            const name = `علامة ${++facilityCounter}`;
+
+            const marker = L.marker(latlng, {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: var(--warning); width: 20px; height: 20px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 20]
+                })
+            }).addTo(map);
+
+            const facility = {
+                id: Date.now(),
+                name: name,
+                type: 'marker',
+                center: { lat: latlng.lat, lng: latlng.lng },
+                dimensions: { width: 0, height: 0 },
+                area: 0,
+                perimeter: 0,
+                layer: marker
+            };
+
+            marker.on('click', () => selectFacility(facility.id));
+
+            facilities.push(facility);
+            updateFacilityList();
+            selectFacility(facility.id);
+
+            // Auto-save to localStorage for sync with main dashboard
+            autoSaveToStorage();
+        }
+
+        // ==================== FACILITY MANAGEMENT ====================
+        function addFacility(name, coordinates, type) {
+            const polygon = L.polygon(coordinates, {
+                color: '#10b981',
+                fillColor: '#10b981',
+                fillOpacity: 0.2,
+                weight: 2
+            }).addTo(map);
+
+            const center = calculateCenter(coordinates);
+            const dimensions = calculateDimensions(coordinates);
+            const area = calculateArea(coordinates);
+            const perimeter = calculatePerimeter(coordinates);
+
+            const facility = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                coordinates: coordinates,
+                center: center,
+                dimensions: dimensions,
+                area: area,
+                perimeter: perimeter,
+                layer: polygon
+            };
+
+            polygon.bindTooltip(`
+                <strong>${name}</strong><br>
+                <small>${dimensions.width.toFixed(1)}م × ${dimensions.height.toFixed(1)}م</small>
+            `, { permanent: false, direction: 'top' });
+
+            polygon.on('click', () => selectFacility(facility.id));
+
+            facilities.push(facility);
+            updateFacilityList();
+            selectFacility(facility.id);
+
+            // Auto-save to localStorage for sync with main dashboard
+            autoSaveToStorage();
+        }
+
+        function addCircleFacility(name, center, radius) {
+            const circle = L.circle(center, {
+                radius: radius,
+                color: '#10b981',
+                fillColor: '#10b981',
+                fillOpacity: 0.2,
+                weight: 2
+            }).addTo(map);
+
+            const area = Math.PI * radius * radius;
+            const perimeter = 2 * Math.PI * radius;
+
+            const facility = {
+                id: Date.now(),
+                name: name,
+                type: 'circle',
+                center: { lat: center.lat, lng: center.lng },
+                dimensions: { width: radius * 2, height: radius * 2, radius: radius },
+                area: area,
+                perimeter: perimeter,
+                layer: circle
+            };
+
+            circle.bindTooltip(`
+                <strong>${name}</strong><br>
+                <small>نصف القطر: ${radius.toFixed(1)}م</small>
+            `, { permanent: false, direction: 'top' });
+
+            circle.on('click', () => selectFacility(facility.id));
+
+            facilities.push(facility);
+            updateFacilityList();
+            selectFacility(facility.id);
+
+            // Auto-save to localStorage for sync with main dashboard
+            autoSaveToStorage();
+        }
+
+        function calculateCenter(coords) {
+            let totalLat = 0, totalLng = 0;
+            coords.forEach(c => {
+                totalLat += c.lat !== undefined ? c.lat : c[0];
+                totalLng += c.lng !== undefined ? c.lng : c[1];
+            });
+            return { lat: totalLat / coords.length, lng: totalLng / coords.length };
+        }
+
+        function calculateDimensions(coords) {
+            let minLat = Infinity, maxLat = -Infinity;
+            let minLng = Infinity, maxLng = -Infinity;
+
+            coords.forEach(c => {
+                const lat = c.lat !== undefined ? c.lat : c[0];
+                const lng = c.lng !== undefined ? c.lng : c[1];
+                minLat = Math.min(minLat, lat);
+                maxLat = Math.max(maxLat, lat);
+                minLng = Math.min(minLng, lng);
+                maxLng = Math.max(maxLng, lng);
+            });
+
+            const centerLat = (minLat + maxLat) / 2;
+            const height = (maxLat - minLat) * 111000;
+            const width = (maxLng - minLng) * 111000 * Math.cos(centerLat * Math.PI / 180);
+
+            return { width, height, minLat, maxLat, minLng, maxLng };
+        }
+
+        function calculateArea(coords) {
+            let area = 0;
+            const n = coords.length;
+
+            for (let i = 0; i < n; i++) {
+                const j = (i + 1) % n;
+                const lat1 = coords[i].lat !== undefined ? coords[i].lat : coords[i][0];
+                const lng1 = coords[i].lng !== undefined ? coords[i].lng : coords[i][1];
+                const lat2 = coords[j].lat !== undefined ? coords[j].lat : coords[j][0];
+                const lng2 = coords[j].lng !== undefined ? coords[j].lng : coords[j][1];
+                area += (lng1 * lat2 - lng2 * lat1);
+            }
+
+            area = Math.abs(area) / 2;
+            const centerLat = calculateCenter(coords).lat;
+            return area * 111000 * 111000 * Math.cos(centerLat * Math.PI / 180);
+        }
+
+        function calculatePerimeter(coords) {
+            let perimeter = 0;
+            const n = coords.length;
+
+            for (let i = 0; i < n; i++) {
+                const j = (i + 1) % n;
+                const lat1 = coords[i].lat !== undefined ? coords[i].lat : coords[i][0];
+                const lng1 = coords[i].lng !== undefined ? coords[i].lng : coords[i][1];
+                const lat2 = coords[j].lat !== undefined ? coords[j].lat : coords[j][0];
+                const lng2 = coords[j].lng !== undefined ? coords[j].lng : coords[j][1];
+
+                const R = 6371000;
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                perimeter += R * c;
+            }
+
+            return perimeter;
+        }
+
+        function formatArea(area) {
+            if (area >= 10000) {
+                return `${(area / 10000).toFixed(2)} هكتار`;
+            }
+            return `${area.toFixed(1)} م²`;
+        }
+
+        function updateFacilityList() {
+            const list = document.getElementById('facilityList');
+            const empty = document.getElementById('emptyState');
+            const count = document.getElementById('facilityCount');
+
+            // Remove existing items
+            list.querySelectorAll('.facility-item').forEach(item => item.remove());
+
+            count.textContent = facilities.length;
+
+            if (facilities.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+
+            facilities.forEach(f => {
+                const item = document.createElement('div');
+                item.className = 'facility-item' + (selectedFacility?.id === f.id ? ' selected' : '');
+                item.dataset.id = f.id;
+
+                const icon = f.type === 'marker' ? 'fa-map-marker-alt' :
+                    f.type === 'circle' ? 'fa-circle' : 'fa-building';
+
+                item.innerHTML = `
+                    <div class="facility-item-header">
+                        <div class="facility-name">
+                            <i class="fas ${icon}"></i>
+                            ${f.name}
+                        </div>
+                        <div class="facility-actions">
+                            <button class="facility-action-btn focus-btn" title="تركيز">
+                                <i class="fas fa-crosshairs"></i>
+                            </button>
+                            <button class="facility-action-btn edit-btn" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="facility-action-btn delete" title="حذف">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="facility-info-grid">
+                        <div class="facility-info-item">
+                            <span class="facility-info-label">الإحداثيات</span>
+                            <span class="facility-info-value">${f.center.lat.toFixed(4)}, ${f.center.lng.toFixed(4)}</span>
+                        </div>
+                        <div class="facility-info-item">
+                            <span class="facility-info-label">المساحة</span>
+                            <span class="facility-info-value">${formatArea(f.area)}</span>
+                        </div>
+                    </div>
+                `;
+
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.facility-action-btn')) {
+                        selectFacility(f.id);
+                    }
+                });
+
+                item.querySelector('.focus-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    focusFacility(f.id);
+                });
+
+                item.querySelector('.edit-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editFacility(f.id);
+                });
+
+                item.querySelector('.delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteFacility(f.id);
+                });
+
+                list.appendChild(item);
+            });
+        }
+
+        function selectFacility(id) {
+            const facility = facilities.find(f => f.id === id);
+            if (!facility) return;
+
+            selectedFacility = facility;
+
+            // Update layer styles
+            facilities.forEach(f => {
+                if (f.layer) {
+                    const isSelected = f.id === id;
+                    if (f.type === 'marker') return;
+                    f.layer.setStyle({
+                        color: isSelected ? '#3b82f6' : '#10b981',
+                        fillColor: isSelected ? '#3b82f6' : '#10b981',
+                        fillOpacity: isSelected ? 0.3 : 0.2,
+                        weight: isSelected ? 3 : 2
+                    });
+                }
+            });
+
+            // Update list
+            document.querySelectorAll('.facility-item').forEach(item => {
+                item.classList.toggle('selected', parseInt(item.dataset.id) === id);
+            });
+
+            // Show details
+            showDetails(facility);
+        }
+
+        function showDetails(f) {
+            const section = document.getElementById('detailsSection');
+            section.style.display = 'block';
+
+            document.getElementById('detailName').textContent = f.name;
+            document.getElementById('detailLat').textContent = f.center.lat.toFixed(6);
+            document.getElementById('detailLng').textContent = f.center.lng.toFixed(6);
+
+            if (f.type === 'circle') {
+                document.getElementById('detailWidth').textContent = `${f.dimensions.radius.toFixed(1)} م`;
+                document.getElementById('detailHeight').textContent = 'نصف القطر';
+            } else if (f.type === 'marker') {
+                document.getElementById('detailWidth').textContent = '-';
+                document.getElementById('detailHeight').textContent = '-';
+            } else {
+                document.getElementById('detailWidth').textContent = `${f.dimensions.width.toFixed(1)} م`;
+                document.getElementById('detailHeight').textContent = `${f.dimensions.height.toFixed(1)} م`;
+            }
+
+            document.getElementById('detailArea').textContent = formatArea(f.area);
+            document.getElementById('detailPerimeter').textContent = `${f.perimeter.toFixed(1)} م`;
+        }
+
+        function focusFacility(id) {
+            const f = facilities.find(f => f.id === id);
+            if (!f) return;
+
+            if (f.layer.getBounds) {
+                map.fitBounds(f.layer.getBounds(), { padding: [50, 50] });
+            } else {
+                map.setView([f.center.lat, f.center.lng], 17);
+            }
+            selectFacility(id);
+        }
+
+        function editFacility(id) {
+            const f = facilities.find(f => f.id === id);
+            if (!f) return;
+
+            const newName = prompt('أدخل اسم المنشأة الجديد:', f.name);
+            if (newName && newName.trim()) {
+                f.name = newName.trim();
+                if (f.layer.unbindTooltip) {
+                    f.layer.unbindTooltip();
+                    f.layer.bindTooltip(`
+                        <strong>${f.name}</strong><br>
+                        <small>${f.dimensions.width.toFixed(1)}م × ${f.dimensions.height.toFixed(1)}م</small>
+                    `, { permanent: false, direction: 'top' });
+                }
+                updateFacilityList();
+                if (selectedFacility?.id === id) {
+                    showDetails(f);
+                }
+            }
+        }
+
+        function deleteFacility(id) {
+            const idx = facilities.findIndex(f => f.id === id);
+            if (idx === -1) return;
+
+            if (confirm('هل أنت متأكد من حذف هذه المنشأة؟')) {
+                map.removeLayer(facilities[idx].layer);
+                facilities.splice(idx, 1);
+
+                if (selectedFacility?.id === id) {
+                    selectedFacility = null;
+                    document.getElementById('detailsSection').style.display = 'none';
+                }
+                updateFacilityList();
+
+                // Auto-save to localStorage for sync with main dashboard
+                autoSaveToStorage();
+            }
+        }
+
+        // ==================== EXPORT/IMPORT ====================
+        document.getElementById('exportDataBtn').addEventListener('click', () => {
+            const data = facilities.map(f => ({
+                name: f.name,
+                type: f.type,
+                center: f.center,
+                dimensions: f.dimensions,
+                area: f.area,
+                perimeter: f.perimeter
+            }));
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'facilities.json';
+            a.click();
+        });
+
+        // ==================== FULLSCREEN ====================
+        document.getElementById('fullscreenBtn').addEventListener('click', function () {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                this.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+                document.exitFullscreen();
+                this.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        });
+
+        // ==================== SAVE TO LOCAL STORAGE ====================
+        function saveFacilitiesToStorage() {
+            const data = facilities.map(f => ({
+                name: f.name,
+                type: f.type,
+                center: f.center,
+                dimensions: f.dimensions,
+                area: f.area,
+                perimeter: f.perimeter,
+                coordinates: f.coordinates ? f.coordinates.map(c => ({
+                    lat: c.lat !== undefined ? c.lat : c[0],
+                    lng: c.lng !== undefined ? c.lng : c[1]
+                })) : null,
+                radius: f.dimensions?.radius || null
+            }));
+            localStorage.setItem('rasd_facilities', JSON.stringify(data));
+            showSaveNotification();
+        }
+
+        // Auto-save silently (for automatic sync without notification)
+        function autoSaveToStorage() {
+            const data = facilities.map(f => ({
+                name: f.name,
+                type: f.type,
+                center: f.center,
+                dimensions: f.dimensions,
+                area: f.area,
+                perimeter: f.perimeter,
+                coordinates: f.coordinates ? f.coordinates.map(c => ({
+                    lat: c.lat !== undefined ? c.lat : c[0],
+                    lng: c.lng !== undefined ? c.lng : c[1]
+                })) : null,
+                radius: f.dimensions?.radius || null
+            }));
+            localStorage.setItem('rasd_facilities', JSON.stringify(data));
+        }
+
+        function showSaveNotification() {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #10b981;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 14px;
+                z-index: 2000;
+                animation: fadeInOut 2s ease;
+            `;
+            notification.innerHTML = '<i class="fas fa-check"></i> تم حفظ المنشآت بنجاح!';
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 2000);
+        }
+
+        function loadFacilitiesFromStorage() {
+            const saved = localStorage.getItem('rasd_facilities');
+            if (!saved) return false;
+
+            try {
+                const data = JSON.parse(saved);
+                if (!data || data.length === 0) return false;
+
+                data.forEach((f, idx) => {
+                    facilityCounter = idx + 1;
+
+                    if (f.type === 'marker') {
+                        const marker = L.marker([f.center.lat, f.center.lng], {
+                            icon: L.divIcon({
+                                className: 'custom-marker',
+                                html: `<div style="background: var(--warning); width: 20px; height: 20px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);"></div>`,
+                                iconSize: [20, 20],
+                                iconAnchor: [10, 20]
+                            })
+                        }).addTo(map);
+
+                        const facility = {
+                            id: Date.now() + idx,
+                            name: f.name,
+                            type: 'marker',
+                            center: f.center,
+                            dimensions: { width: 0, height: 0 },
+                            area: 0,
+                            perimeter: 0,
+                            layer: marker
+                        };
+                        marker.on('click', () => selectFacility(facility.id));
+                        facilities.push(facility);
+                    } else if (f.type === 'circle' && f.radius) {
+                        const circle = L.circle([f.center.lat, f.center.lng], {
+                            radius: f.radius,
+                            color: '#10b981',
+                            fillColor: '#10b981',
+                            fillOpacity: 0.2,
+                            weight: 2
+                        }).addTo(map);
+
+                        const facility = {
+                            id: Date.now() + idx,
+                            name: f.name,
+                            type: 'circle',
+                            center: f.center,
+                            dimensions: { width: f.radius * 2, height: f.radius * 2, radius: f.radius },
+                            area: f.area,
+                            perimeter: f.perimeter,
+                            layer: circle
+                        };
+                        circle.bindTooltip(`<strong>${f.name}</strong><br><small>نصف القطر: ${f.radius.toFixed(1)}م</small>`, { permanent: false, direction: 'top' });
+                        circle.on('click', () => selectFacility(facility.id));
+                        facilities.push(facility);
+                    } else if (f.coordinates) {
+                        const coords = f.coordinates.map(c => [c.lat, c.lng]);
+                        const polygon = L.polygon(coords, {
+                            color: '#10b981',
+                            fillColor: '#10b981',
+                            fillOpacity: 0.2,
+                            weight: 2
+                        }).addTo(map);
+
+                        const facility = {
+                            id: Date.now() + idx,
+                            name: f.name,
+                            type: f.type,
+                            coordinates: coords,
+                            center: f.center,
+                            dimensions: f.dimensions,
+                            area: f.area,
+                            perimeter: f.perimeter,
+                            layer: polygon
+                        };
+                        polygon.bindTooltip(`<strong>${f.name}</strong><br><small>${f.dimensions.width.toFixed(1)}م × ${f.dimensions.height.toFixed(1)}م</small>`, { permanent: false, direction: 'top' });
+                        polygon.on('click', () => selectFacility(facility.id));
+                        facilities.push(facility);
+                    }
+                });
+
+                updateFacilityList();
+                return true;
+            } catch (e) {
+                console.error('Error loading facilities:', e);
+                return false;
+            }
+        }
+
+        // Add Save button functionality
+        const saveStorageBtn = document.createElement('button');
+        saveStorageBtn.className = 'header-btn';
+        saveStorageBtn.id = 'saveStorageBtn';
+        saveStorageBtn.title = 'حفظ المنشآت';
+        saveStorageBtn.innerHTML = '<i class="fas fa-save"></i>';
+        saveStorageBtn.addEventListener('click', saveFacilitiesToStorage);
+        document.querySelector('.header-left').insertBefore(saveStorageBtn, document.getElementById('exportDataBtn'));
+
+        // Add CSS animation for notification
+        const notifStyle = document.createElement('style');
+        notifStyle.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+                20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            }
+        `;
+        document.head.appendChild(notifStyle);
+
+        // ==================== INITIALIZE ====================
+        // Try to load saved facilities, if none exist add samples
+        setTimeout(() => {
+            const loaded = loadFacilitiesFromStorage();
+
+            if (!loaded) {
+                // Add sample facilities if no saved data
+                const sample1 = [
+                    [24.7140, 46.6780],
+                    [24.7155, 46.6780],
+                    [24.7155, 46.6800],
+                    [24.7140, 46.6800]
+                ];
+                addFacility('المبنى الرئيسي', sample1, 'rectangle');
+
+                const sample2 = [
+                    [24.7170, 46.6720],
+                    [24.7182, 46.6720],
+                    [24.7182, 46.6738],
+                    [24.7170, 46.6738]
+                ];
+                addFacility('المبنى الإداري', sample2, 'rectangle');
+            }
+
+            // Deselect
+            selectedFacility = null;
+            document.getElementById('detailsSection').style.display = 'none';
+            facilities.forEach(f => {
+                if (f.layer.setStyle) {
+                    f.layer.setStyle({
+                        color: '#10b981',
+                        fillColor: '#10b981',
+                        fillOpacity: 0.2,
+                        weight: 2
+                    });
+                }
+            });
+            document.querySelectorAll('.facility-item').forEach(item => item.classList.remove('selected'));
+        }, 500);
+    </script>
+    <script src="js/rasd-utils.js"></script>
+</body>
+
+</html>

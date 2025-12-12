@@ -1,0 +1,3918 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رَصْد - البث المباشر</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- مكتبات البث المباشر -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flv.js@latest/dist/flv.min.js"></script>
+    <!-- إضافة مكتبة Socket.io للاتصال المباشر -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --light: #f1f5f9;
+            --dark: #020617;
+            --border: rgba(148, 163, 184, 0.2);
+            --card-bg: rgba(30, 41, 59, 0.8);
+            --hover: rgba(59, 130, 246, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--secondary);
+            border-bottom: 1px solid var(--border);
+            height: 70px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: var(--danger);
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background-color: rgba(239, 68, 68, 0.15);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--danger);
+        }
+
+        .live-indicator i {
+            animation: pulse-live 1.5s infinite;
+        }
+
+        @keyframes pulse-live {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .view-toggle {
+            display: flex;
+            background-color: rgba(30, 41, 59, 0.8);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .view-btn {
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-btn:hover {
+            background-color: var(--hover);
+        }
+
+        .view-btn.active {
+            background-color: var(--accent);
+        }
+
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .header-btn:hover {
+            background-color: var(--hover);
+            border-color: var(--accent);
+        }
+
+        .header-btn.recording {
+            background-color: var(--danger);
+            border-color: var(--danger);
+            animation: pulse-record 1s infinite;
+        }
+
+        @keyframes pulse-record {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .broadcast-card {
+            height: calc(100vh - 90px);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(30, 41, 59, 0.8);
+            color: var(--light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .card-action-btn:hover {
+            background: var(--hover);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .card-body {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Camera Search Box */
+        .camera-search-box {
+            position: relative;
+        }
+
+        .camera-search-input {
+            width: 200px;
+            padding: 8px 35px 8px 12px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 13px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .camera-search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .camera-search-input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        .camera-search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(148, 163, 184, 0.5);
+            font-size: 12px;
+        }
+
+        /* Video Grid */
+        .video-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 4px;
+            padding: 4px;
+            background-color: var(--dark);
+            height: 100%;
+            min-height: 0;
+        }
+
+        .video-grid.grid-1 {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
+
+        .video-grid.grid-1 .video-feed:not(.active) {
+            display: none;
+        }
+
+        .video-grid.grid-4 {
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+        }
+
+        .video-grid.grid-6 {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+        }
+
+        .video-feed {
+            position: relative;
+            background-color: var(--primary);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 150px;
+        }
+
+        .video-feed:hover {
+            outline: 2px solid var(--accent);
+        }
+
+        .video-feed.active {
+            outline: 3px solid var(--accent);
+        }
+
+        /* Video Placeholder */
+        .video-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .video-placeholder i {
+            font-size: 48px;
+            color: var(--accent);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .video-placeholder span {
+            color: rgba(241, 245, 249, 0.5);
+            font-size: 14px;
+        }
+
+        /* Video Header */
+        .video-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 15px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .video-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .video-info i {
+            color: var(--accent);
+        }
+
+        .video-info span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .video-live {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background-color: var(--danger);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .video-live i {
+            animation: pulse-live 1.5s infinite;
+        }
+
+        /* Video Footer */
+        .video-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 15px;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .video-stats {
+            display: flex;
+            gap: 15px;
+        }
+
+        .video-stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.8);
+        }
+
+        .video-stat i {
+            color: var(--accent);
+        }
+
+        .video-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .video-control-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .video-control-btn:hover {
+            background-color: var(--accent);
+        }
+
+        /* Detection Boxes */
+        .detection-box {
+            position: absolute;
+            border: 2px solid;
+            border-radius: 4px;
+            z-index: 5;
+        }
+
+        .detection-box.danger {
+            border-color: var(--danger);
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .detection-box.warning {
+            border-color: var(--warning);
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+
+        .detection-box.info {
+            border-color: var(--info);
+            background-color: rgba(6, 182, 212, 0.1);
+        }
+
+        .detection-label {
+            position: absolute;
+            top: -22px;
+            right: 0;
+            padding: 2px 8px;
+            border-radius: 4px 4px 0 0;
+            font-size: 10px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .detection-box.danger .detection-label {
+            background-color: var(--danger);
+        }
+
+        .detection-box.warning .detection-label {
+            background-color: var(--warning);
+        }
+
+        .detection-box.info .detection-label {
+            background-color: var(--info);
+        }
+
+        /* Broadcast Legend */
+        .broadcast-legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .broadcast-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .broadcast-legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .broadcast-legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Stream Player Styles */
+        .video-player {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            background: #000;
+        }
+
+        .stream-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .video-feed.streaming .video-player,
+        .video-feed.streaming .stream-img {
+            display: block;
+        }
+
+        .video-feed.streaming .video-placeholder {
+            display: none;
+        }
+
+        /* Stream Status Indicator */
+        .stream-status {
+            position: absolute;
+            top: 50px;
+            left: 15px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 15;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .stream-status.connecting {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .stream-status.connected {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .stream-status.disconnected {
+            background: rgba(148, 163, 184, 0.2);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .stream-status.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .stream-status.reconnecting {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Connect Stream Button */
+        .connect-stream-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .connect-stream-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Sidebar */
+        .sidebar-panel {
+            width: 320px;
+            background-color: var(--secondary);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            height: 100%;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-title i {
+            color: var(--accent);
+        }
+
+        .sidebar-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* Camera List */
+        .camera-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .camera-item {
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .camera-item:hover {
+            border-color: var(--accent);
+            background-color: var(--hover);
+        }
+
+        .camera-item.active {
+            border-color: var(--accent);
+            background-color: rgba(59, 130, 246, 0.15);
+        }
+
+        .camera-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .camera-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .camera-name i {
+            color: var(--accent);
+        }
+
+        .camera-status {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .camera-status.online {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .camera-status.offline {
+            background-color: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+        }
+
+        .camera-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .camera-detail {
+            font-size: 11px;
+            color: rgba(241, 245, 249, 0.6);
+        }
+
+        .camera-detail span {
+            color: var(--light);
+            font-weight: 500;
+        }
+
+        /* Recording Section */
+        .recording-section {
+            padding: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .recording-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recording-title i {
+            color: var(--danger);
+        }
+
+        .recording-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .recording-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background-color: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .recording-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recording-info i {
+            color: var(--danger);
+            animation: pulse-live 1.5s infinite;
+        }
+
+        .recording-time {
+            font-family: 'Consolas', monospace;
+            color: var(--danger);
+        }
+
+        /* Stream Settings Modal */
+        .stream-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .stream-modal.show {
+            display: flex;
+        }
+
+        .stream-modal-content {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 600px;
+            max-width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .stream-modal-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stream-modal-header h3 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .stream-modal-header h3 i {
+            color: var(--accent);
+        }
+
+        .stream-modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stream-modal-close:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .stream-modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .stream-config {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .stream-config label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--light);
+        }
+
+        .stream-config-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stream-config input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 13px;
+            font-family: 'Consolas', monospace;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .stream-config input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .stream-config input[type="text"]::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        .stream-type-select {
+            padding: 12px 15px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 13px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        .stream-type-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .stream-modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .stream-modal-footer button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save-config {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-save-config:hover {
+            background: var(--accent-dark);
+        }
+
+        .btn-connect-all {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-connect-all:hover {
+            background: #059669;
+        }
+
+        .btn-disconnect-all {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .btn-disconnect-all:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Test Stream Links */
+        .test-streams {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .test-streams-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .test-stream-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .test-stream-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .test-stream-url {
+            font-family: 'Consolas', monospace;
+            color: rgba(241, 245, 249, 0.7);
+            direction: ltr;
+            font-size: 11px;
+        }
+
+        .test-stream-copy {
+            padding: 5px 10px;
+            background: var(--accent);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .test-stream-copy:hover {
+            background: var(--accent-dark);
+        }
+
+        /* تحليل الفيديو - Upload Video Styles */
+        .upload-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .upload-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .upload-input {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .upload-input label {
+            font-size: 14px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .file-input-container {
+            position: relative;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-container:hover {
+            border-color: var(--accent);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .file-input-container i {
+            font-size: 40px;
+            color: rgba(241, 245, 249, 0.5);
+            margin-bottom: 15px;
+        }
+
+        .file-input-container p {
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-btn {
+            padding: 12px 20px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .upload-btn:hover {
+            background-color: #2563eb;
+        }
+
+        .upload-btn:disabled {
+            background-color: rgba(59, 130, 246, 0.5);
+            cursor: not-allowed;
+        }
+
+        .preview-container {
+            margin-top: 15px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .preview-video {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 8px;
+            background-color: var(--dark);
+        }
+
+        .preview-info {
+            font-size: 14px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .results-section {
+            display: none;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .results-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .results-body {
+            padding: 0;
+        }
+
+        .video-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-gap: 0;
+            height: 600px;
+        }
+
+        .video-player-container {
+            position: relative;
+            background-color: var(--dark);
+            border-right: 1px solid var(--border);
+        }
+
+        .video-player-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .results-panel {
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+        }
+
+        .results-panel-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        .results-panel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            color: rgba(241, 245, 249, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--light);
+            box-shadow: inset 0 -2px 0 var(--accent);
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tab-pane {
+            display: none;
+            padding: 15px;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .detection-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .detection-item {
+            background-color: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .detection-item:hover {
+            background-color: var(--hover);
+        }
+
+        .detection-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .weapon-icon {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .nomask-icon {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .detection-info {
+            flex-grow: 1;
+        }
+
+        .detection-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .detection-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .detection-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .detection-confidence {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--accent);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .stat-card {
+            background-color: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-label {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(241, 245, 249, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent);
+            transition: width 0.5s ease;
+        }
+
+        .progress-info {
+            font-size: 14px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        /* تحليل الفيديو - Tasks Styles */
+        .task-card {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .task-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 18px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-time {
+            font-size: 14px;
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .task-body {
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .task-thumbnail {
+            width: 200px;
+            height: 120px;
+            background-color: var(--dark);
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(241, 245, 249, 0.5);
+            object-fit: cover;
+        }
+
+        .task-info {
+            flex-grow: 1;
+        }
+
+        .task-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .task-stat {
+            background-color: rgba(15, 23, 42, 0.5);
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .task-icon {
+            color: var(--accent);
+        }
+
+        .task-value {
+            font-weight: 500;
+        }
+
+        .task-label {
+            color: rgba(241, 245, 249, 0.7);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .task-btn {
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .task-btn-primary {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+        }
+
+        .task-btn-outline {
+            background-color: transparent;
+            color: var(--light);
+            border: 1px solid var(--border);
+        }
+
+        .task-btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .task-btn-outline:hover {
+            background-color: var(--hover);
+        }
+
+        /* Upload Video Modal */
+        .upload-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .upload-modal.show {
+            display: flex;
+        }
+
+        .upload-modal-content {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 500px;
+            max-width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .upload-modal-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .upload-modal-header h3 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .upload-modal-header h3 i {
+            color: var(--accent);
+        }
+
+        .upload-modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .upload-zone i {
+            font-size: 48px;
+            color: var(--accent);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .upload-zone p {
+            font-size: 14px;
+            color: rgba(241, 245, 249, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .upload-zone span {
+            font-size: 12px;
+            color: rgba(148, 163, 184, 0.7);
+        }
+
+        #fileUpload {
+            display: none;
+        }
+
+        .upload-preview {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .upload-preview.active {
+            display: block;
+        }
+
+        .preview-video {
+            width: 100%;
+            border-radius: 8px;
+            background: #000;
+            max-height: 220px;
+            object-fit: contain;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .file-info-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .file-info-label {
+            color: rgba(148, 163, 184, 0.7);
+        }
+
+        .file-info-value {
+            font-weight: 500;
+            color: var(--light);
+        }
+
+        .upload-progress {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .upload-progress.active {
+            display: block;
+        }
+
+        .upload-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .upload-actions button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .cancel-upload-btn {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--light);
+        }
+
+        .cancel-upload-btn:hover {
+            background: rgba(148, 163, 184, 0.2);
+        }
+
+        .upload-complete {
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+            padding: 15px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            color: var(--success);
+        }
+
+        .upload-complete.active {
+            display: block;
+        }
+
+        .upload-complete i {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .upload-complete p {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .upload-complete span {
+            font-size: 12px;
+            color: rgba(16, 185, 129, 0.8);
+        }
+
+        .upload-error {
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+            padding: 15px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: var(--danger);
+        }
+
+        .upload-error.active {
+            display: block;
+        }
+
+        .upload-error i {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .upload-error p {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .upload-error span {
+            font-size: 12px;
+            color: rgba(239, 68, 68, 0.8);
+        }
+
+        /* تبويبات التطبيق */
+        .app-tabs {
+            display: flex;
+            background-color: var(--secondary);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .app-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            color: var(--light);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .app-tab:hover {
+            background-color: var(--hover);
+        }
+
+        .app-tab.active {
+            background-color: var(--accent);
+        }
+
+        .app-tab-content {
+            display: none;
+        }
+
+        .app-tab-content.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .video-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .video-player-container {
+                height: 300px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .task-body {
+                flex-direction: column;
+            }
+
+            .task-thumbnail {
+                width: 100%;
+                height: 150px;
+            }
+
+            .header-right {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="page-header">
+            <div class="header-right">
+                <a href="index.html" class="back-btn">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>العودة للوحة التحكم</span>
+                </a>
+                <div class="page-title">
+                    <i class="fas fa-video"></i>
+                    <span>البث المباشر</span>
+                </div>
+                <div class="live-indicator">
+                    <i class="fas fa-circle"></i>
+                    <span>4 كاميرات نشطة</span>
+                </div>
+            </div>
+            <div class="header-left">
+                <div class="view-toggle">
+                    <button class="view-btn" data-grid="1" title="عرض مفرد">
+                        <i class="fas fa-square"></i>
+                    </button>
+                    <button class="view-btn active" data-grid="4" title="عرض رباعي">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="view-btn" data-grid="6" title="عرض سداسي">
+                        <i class="fas fa-th"></i>
+                    </button>
+                </div>
+                <button class="header-btn" id="streamSettingsBtn" title="إعدادات البث">
+                    <i class="fas fa-satellite-dish"></i>
+                </button>
+                <button class="header-btn" id="uploadVideoBtn" title="رفع مقطع">
+                    <i class="fas fa-file-upload"></i>
+                </button>
+                <button class="header-btn" id="recordBtn" title="تسجيل">
+                    <i class="fas fa-circle"></i>
+                </button>
+                <button class="header-btn" id="screenshotBtn" title="لقطة شاشة">
+                    <i class="fas fa-camera"></i>
+                </button>
+                <button class="header-btn" id="fullscreenBtn" title="ملء الشاشة">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div style="flex: 1; padding: 20px;">
+                <!-- تبويبات التطبيق -->
+                <div class="app-tabs">
+                    <div class="app-tab active" data-tab="live">البث المباشر</div>
+                    <div class="app-tab" data-tab="analysis">تحليل الفيديو</div>
+                </div>
+
+                <!-- قسم البث المباشر -->
+                <div class="app-tab-content active" id="liveTab">
+                    <!-- Broadcast Card -->
+                    <div class="card broadcast-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-icon"><i class="fas fa-video"></i></div>
+                                <span>البث المباشر</span>
+                            </div>
+                            <div class="card-actions">
+                                <div class="camera-search-box">
+                                    <input type="text" id="cameraSearchInput" class="camera-search-input"
+                                        placeholder="ابحث عن كاميرا..." autocomplete="off">
+                                    <i class="fas fa-search camera-search-icon"></i>
+                                </div>
+                                <button class="card-action-btn" id="streamSettingsBtn2" title="إعدادات البث">
+                                    <i class="fas fa-satellite-dish"></i>
+                                </button>
+                                <button class="card-action-btn" id="uploadVideoBtn2" title="رفع مقطع">
+                                    <i class="fas fa-file-upload"></i>
+                                </button>
+                                <button class="card-action-btn" id="recordBtn2" title="تسجيل">
+                                    <i class="fas fa-circle"></i>
+                                </button>
+                                <button class="card-action-btn" id="screenshotBtn2" title="لقطة شاشة">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                                <button class="card-action-btn" id="fullscreenBtn2" title="ملء الشاشة">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Video Grid -->
+                            <div class="video-grid grid-4" id="videoGrid">
+                                <!-- Video Feed 1 - القطاع الشرقي -->
+                                <div class="video-feed active" data-camera="1" data-drone="طائرة #1">
+                                    <video class="video-player" autoplay muted playsinline></video>
+                                    <img class="stream-img" style="display: none;">
+                                    <div class="video-placeholder">
+                                        <i class="fas fa-drone"></i>
+                                        <span>طائرة #1 - القطاع الشرقي</span>
+                                        <button class="connect-stream-btn" data-camera="1" data-drone="طائرة #1">
+                                            <i class="fas fa-plug"></i> اتصال بالبث
+                                        </button>
+                                    </div>
+                                    <div class="video-header">
+                                        <div class="video-info">
+                                            <i class="fas fa-drone"></i>
+                                            <span>طائرة #1 - القطاع الشرقي</span>
+                                        </div>
+                                        <div class="video-live">
+                                            <i class="fas fa-circle"></i>
+                                            مباشر
+                                        </div>
+                                    </div>
+                                    <div class="detection-box danger detection-box-person"
+                                        style="left: 40%; top: 35%; width: 18%; height: 28%; display: none;">
+                                        <div class="detection-label">شخص مسلح 92%</div>
+                                    </div>
+                                    <div class="stream-status connecting">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <span>جارِ الاتصال...</span>
+                                    </div>
+                                    <div class="video-footer">
+                                        <div class="video-stats">
+                                            <div class="video-stat">
+                                                <i class="fas fa-mountain"></i>
+                                                <span class="distance-value">85م</span>
+                                            </div>
+                                            <div class="video-stat">
+                                                <i class="fas fa-battery-three-quarters"></i>
+                                                <span class="battery-value">85%</span>
+                                            </div>
+                                            <div class="video-stat">
+                                                <i class="fas fa-signal"></i>
+                                                <span class="signal-value">قوي</span>
+                                            </div>
+                                        </div>
+                                        <div class="video-controls">
+                                            <button class="video-control-btn" title="تسجيل">
+                                                <i class="fas fa-circle"></i>
+                                            </button>
+                                            <button class="video-control-btn" title="لقطة">
+                                                <i class="fas fa-camera"></i>
+                                            </button>
+                                            <button class="video-control-btn" title="ملء الشاشة">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Video Feed 2 - القطاع الشمالي -->
+                                <div class="video-feed" data-camera="2" data-drone="طائرة #2">
+                                    <video class="video-player" autoplay muted playsinline></video>
+                                    <img class="stream-img" style="display: none;">
+                                    <div class="video-placeholder">
+                                        <i class="fas fa-drone"></i>
+                                        <span>طائرة #2 - القطاع الشمالي</span>
+                                        <button class="connect-stream-btn" data-camera="2" data-drone="طائرة #2">
+                                            <i class="fas fa-plug"></i> اتصال بالبث
+                                        </button>
+                                    </div>
+                                    <div class="video-header">
+                                        <div class="video-info">
+                                            <i class="fas fa-drone"></i>
+                                            <span>طائرة #2 - القطاع الشمالي</span>
+                                        </div>
+                                        <div class="video-live">
+                                            <i class="fas fa-circle"></i>
+                                            مباشر
+                                        </div>
+                                    </div>
+                                    <div class="detection-box warning detection-box-bag"
+                                        style="left: 30%; top: 40%; width: 15%; height: 25%; display: none;">
+                                        <div class="detection-label">حقيبة مشبوهة 78%</div>
+                                    </div>
+                                    <div class="stream-status connecting">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <span>جارِ الاتصال...</span>
+                                    </div>
+                                    <div class="video-footer">
+                                        <div class="video-stats">
+                                            <div class="video-stat">
+                                                <i class="fas fa-mountain"></i>
+                                                <span class="distance-value">120م</span>
+                                            </div>
+                                            <div class="video-stat">
+                                                <i class="fas fa-battery-half"></i>
+                                                <span class="battery-value">55%</span>
+                                            </div>
+                                            <div class="video-stat">
+                                                <i class="fas fa-signal"></i>
+                                                <span class="signal-value">متوسط</span>
+                                            </div>
+                                        </div>
+                                        <div class="video-controls">
+                                            <button class="video-control-btn" title="تسجيل">
+                                                <i class="fas fa-circle"></i>
+                                            </button>
+                                            <button class="video-control-btn" title="لقطة">
+                                                <i class="fas fa-camera"></i>
+                                            </button>
+                                            <button class="video-control-btn" title="ملء الشاشة">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Video Feed 3 - القطاع الغربي -->
+                                <div class="video-feed" data-camera="3" data-drone="طائرة #4">
+                                    <video class="video-player" autoplay muted playsinline></video>
+                                    <img class="stream-img" style="display: none;">
+                                    <div class="video-placeholder">
+                                        <i class="fas fa-drone"></i>
+                                        <span>طائرة #4 - القطاع الغربي</span>
+                                        <button class="connect-stream-btn" data-camera="3" data-drone="طائرة #4">
+                                            <i class="fas fa-plug"></i> اتصال بالبث
+                                        </button>
+                                    </div>
+                                    <div class="video-header">
+                                        <div class="video-info">
+                                            <i class="fas fa-drone"></i>
+                                            <span>طائرة #4 - القطاع الغربي</span>
+                                        </div>
+                                        <div class="video-live">
+                                            <i class="fas fa-circle"></i>
+                                            مباشر
+                                        </div>
+                                    </div>
+                                    <div class="detection-box info detection-box-person1"
+                                        style="left: 20%; top: 35%; width: 13%; height: 24%; display: none;">
+                                        <div class="detection-label">شخص 91%</div>
+                                    </div>
+                                    <div class="detection-box info detection-box-person2"
+                                        style="left: 55%; top: 40%; width: 12%; height: 22%; display: none;">
+                                        <div class="detection-label">شخص 89%</div>
+                                    </div>
+                                    <div class="stream-status connecting">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <span>جارِ الاتصال...</span>
+                                    </div>
+                                    <div class="video-footer">
+                                        <div class="video-stats">
+                                            <div class="video-stat">
+                                                <i class="fas fa-mountain"></i>
+                                                <span class="distance-value">95م</span>
+                                            </div>
+                                            <div class="video-stat">
+                                                <i class="fas fa-battery-three-quarters"></i>
+                                                <span class="battery-value">75%</span>
+                                            </div>
+                                            <div class="video-stat">
+                                                <i class="fas fa-signal"></i>
+                                                <span class="signal-value">قوي</span>
+                                            </div>
+                                        </div>
+                                        <div class="video-controls">
+                                            <button class="video-control-btn" title="تسجيل">
+                                                <i class="fas fa-circle"></i>
+                                            </button>
+                                            <button class="video-control-btn" title="لقطة">
+                                                <i class="fas fa-camera"></i>
+                                            </button>
+                                            <button class="video-control-btn" title="ملء الشاشة">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Video Feed 4 - القطاع الجنوبي -->
+                                <div class="video-feed" data-camera="4" data-drone="طائرة #6">
+                                    <video class="video-player" autoplay muted playsinline></video>
+                                    <img class="stream-img" style="display: none;">
+                                    <div class="video-placeholder">
+                                        <i class="fas fa-drone"></i>
+                                        <span>طائرة #6 - القطاع الجنوبي</span>
+                                        <button class="connect-stream-btn" data-camera="4" data-drone="طائرة #6">
+                                            <i class="fas fa-plug"></i> اتصال بالبث
+                                        </button>
+                                    </div>
+                                    <div class="video-header">
+                                        <div class="video-info">
+                                            <i class="fas fa-drone"></i>
+                                            <span>طائرة #6 - القطاع الجنوبي</span>
+                                        </div>
+                                        <div class="video-live">
+                                            <i class="fas fa-circle"></i>
+                                            مباشر
+                                        </div>
+                                    </div>
+                                    <div class="stream-status connecting">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <span>جارِ الاتصال...</span>
+                                    </div>
+                                    <div class="video-footer">
+                                        <div class="video-stats">
+                                            <div class="video-stat">
+                                                <i class="fas fa-mountain"></i>
+                                                <span class="distance-value">70م</span>
+                                            </div>
+                                            <div class="video-stat">
+                                                <i class="fas fa-battery-full"></i>
+                                                <span class="battery-value">92%</span>
+                                            </div>
+                                            <div class="video-stat">
+                                                <i class="fas fa-signal"></i>
+                                                <span class="signal-value">قوي</span>
+                                            </div>
+                                        </div>
+                                        <div class="video-controls">
+                                            <button class="video-control-btn" title="تسجيل">
+                                                <i class="fas fa-circle"></i>
+                                            </button>
+                                            <button class="video-control-btn" title="لقطة">
+                                                <i class="fas fa-camera"></i>
+                                            </button>
+                                            <button class="video-control-btn" title="ملء الشاشة">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Broadcast Legend -->
+                            <div class="broadcast-legend">
+                                <div class="broadcast-legend-item">
+                                    <div class="broadcast-legend-color" style="background-color: #10b981;"></div>
+                                    <span>متصل</span>
+                                </div>
+                                <div class="broadcast-legend-item">
+                                    <div class="broadcast-legend-color" style="background-color: #f59e0b;"></div>
+                                    <span>جاري الاتصال</span>
+                                </div>
+                                <div class="broadcast-legend-item">
+                                    <div class="broadcast-legend-color" style="background-color: #ef4444;"></div>
+                                    <span>خطأ</span>
+                                </div>
+                                <div class="broadcast-legend-item">
+                                    <div class="broadcast-legend-color" style="background-color: #6b7280;"></div>
+                                    <span>غير متصل</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- قسم تحليل الفيديو -->
+                <div class="app-tab-content" id="analysisTab">
+                    <div class="header">
+                        <div class="page-title">
+                            <span>تحليل الفيديو</span>
+                        </div>
+                        <div class="camera-count">
+                            <span id="activeCount">0</span> تحليل فيديو
+                        </div>
+                    </div>
+
+                    <div class="upload-section">
+                        <div class="upload-title">تحميل فيديو للتحليل</div>
+                        <div class="upload-form">
+                            <div class="upload-input">
+                                <label>اختر ملف فيديو</label>
+                                <div class="file-input-container">
+                                    <i class="bi bi-cloud-upload"></i>
+                                    <p>اسحب ملف الفيديو هنا أو انقر للاختيار</p>
+                                    <p>الصيغ المدعومة: MP4, AVI, MOV, MKV</p>
+                                    <input type="file" id="videoFile" class="file-input" accept="video/*">
+                                </div>
+                            </div>
+                            <div class="preview-container" id="previewContainer">
+                                <video id="previewVideo" class="preview-video" controls></video>
+                                <div class="preview-info" id="previewInfo">
+                                    اسم الملف: <span id="fileName"></span> | الحجم: <span id="fileSize"></span>
+                                </div>
+                            </div>
+                            <button id="uploadBtn" class="upload-btn" disabled>
+                                <i class="bi bi-rocket"></i> بدء التحليل
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="progressSection" class="upload-section" style="display: none;">
+                        <div class="progress-container">
+                            <div class="progress-label">جاري تحليل الفيديو...</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-info" id="progressInfo">0%</div>
+                        </div>
+                    </div>
+
+                    <div id="resultsSection" class="results-section">
+                        <div class="results-header">
+                            <div class="results-title">نتائج تحليل الفيديو</div>
+                        </div>
+                        <div class="results-body">
+                            <div class="video-container">
+                                <div class="video-player-container">
+                                    <video id="resultVideo" controls></video>
+                                </div>
+                                <div class="results-panel">
+                                    <div class="results-panel-header">تفاصيل التحليل</div>
+                                    <div class="results-panel-tabs">
+                                        <button class="tab-btn active" data-tab="detections">التهديدات المرصودة</button>
+                                        <button class="tab-btn" data-tab="stats">الإحصائيات</button>
+                                    </div>
+                                    <div class="tab-content">
+                                        <div class="tab-pane active" id="detectionsTab">
+                                            <div class="detection-list" id="detectionsList">
+                                                <!-- Detections will be inserted here -->
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane" id="statsTab">
+                                            <div class="stats-grid" id="statsGrid">
+                                                <!-- Stats will be inserted here -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tasksContainer"></div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-header">
+                    <h2 class="sidebar-title">
+                        <i class="fas fa-camera"></i>
+                        الكاميرات المتاحة
+                    </h2>
+                </div>
+                <div class="sidebar-body">
+                    <div class="camera-list">
+                        <div class="camera-item active" data-camera="1">
+                            <div class="camera-header">
+                                <div class="camera-name">
+                                    <i class="fas fa-video"></i>
+                                    طائرة #1
+                                </div>
+                                <span class="camera-status online">متصل</span>
+                            </div>
+                            <div class="camera-details">
+                                <div class="camera-detail">الموقع: <span>القطاع الشرقي</span></div>
+                                <div class="camera-detail">الجودة: <span>4K</span></div>
+                                <div class="camera-detail">الارتفاع: <span>85م</span></div>
+                                <div class="camera-detail">الاتصال: <span>قوي</span></div>
+                            </div>
+                        </div>
+                        <div class="camera-item" data-camera="2">
+                            <div class="camera-header">
+                                <div class="camera-name">
+                                    <i class="fas fa-video"></i>
+                                    طائرة #2
+                                </div>
+                                <span class="camera-status online">متصل</span>
+                            </div>
+                            <div class="camera-details">
+                                <div class="camera-detail">الموقع: <span>القطاع الشمالي</span></div>
+                                <div class="camera-detail">الجودة: <span>4K</span></div>
+                                <div class="camera-detail">الارتفاع: <span>120م</span></div>
+                                <div class="camera-detail">الاتصال: <span>متوسط</span></div>
+                            </div>
+                        </div>
+                        <div class="camera-item" data-camera="3">
+                            <div class="camera-header">
+                                <div class="camera-name">
+                                    <i class="fas fa-video"></i>
+                                    طائرة #4
+                                </div>
+                                <span class="camera-status online">متصل</span>
+                            </div>
+                            <div class="camera-details">
+                                <div class="camera-detail">الموقع: <span>القطاع الغربي</span></div>
+                                <div class="camera-detail">الجودة: <span>1080p</span></div>
+                                <div class="camera-detail">الارتفاع: <span>95م</span></div>
+                                <div class="camera-detail">الاتصال: <span>قوي</span></div>
+                            </div>
+                        </div>
+                        <div class="camera-item" data-camera="4">
+                            <div class="camera-header">
+                                <div class="camera-name">
+                                    <i class="fas fa-video"></i>
+                                    طائرة #6
+                                </div>
+                                <span class="camera-status online">متصل</span>
+                            </div>
+                            <div class="camera-details">
+                                <div class="camera-detail">الموقع: <span>القطاع الجنوبي</span></div>
+                                <div class="camera-detail">الجودة: <span>4K</span></div>
+                                <div class="camera-detail">الارتفاع: <span>70م</span></div>
+                                <div class="camera-detail">الاتصال: <span>قوي</span></div>
+                            </div>
+                        </div>
+                        <div class="camera-item">
+                            <div class="camera-header">
+                                <div class="camera-name">
+                                    <i class="fas fa-video"></i>
+                                    طائرة #3
+                                </div>
+                                <span class="camera-status offline">غير متصل</span>
+                            </div>
+                            <div class="camera-details">
+                                <div class="camera-detail">الحالة: <span>قيد الشحن</span></div>
+                                <div class="camera-detail">البطارية: <span>35%</span></div>
+                            </div>
+                        </div>
+                        <div class="camera-item">
+                            <div class="camera-header">
+                                <div class="camera-name">
+                                    <i class="fas fa-video"></i>
+                                    طائرة #5
+                                </div>
+                                <span class="camera-status offline">غير متصل</span>
+                            </div>
+                            <div class="camera-details">
+                                <div class="camera-detail">الحالة: <span>صيانة</span></div>
+                                <div class="camera-detail">الوقت المتوقع: <span>2 ساعة</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="recording-section">
+                    <div class="recording-title">
+                        <i class="fas fa-record-vinyl"></i>
+                        التسجيلات النشطة
+                    </div>
+                    <div class="recording-list" id="recordingList">
+                        <div class="recording-item">
+                            <div class="recording-info">
+                                <i class="fas fa-circle"></i>
+                                <span>لا توجد تسجيلات نشطة</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Stream Settings Modal -->
+    <div class="stream-modal" id="streamSettingsModal">
+        <div class="stream-modal-content">
+            <div class="stream-modal-header">
+                <h3><i class="fas fa-satellite-dish"></i> إعدادات البث المباشر</h3>
+                <button class="stream-modal-close" id="closeStreamModal">&times;</button>
+            </div>
+            <div class="stream-modal-body">
+                <!-- Camera 1 Config -->
+                <div class="stream-config" data-camera="1">
+                    <label><i class="fas fa-drone"></i> طائرة #1 - القطاع الشرقي</label>
+                    <div class="stream-config-row">
+                        <input type="text" placeholder="http://localhost:8080/hls/stream1.m3u8" />
+                        <select class="stream-type-select">
+                            <option value="auto">تلقائي</option>
+                            <option value="hls">HLS (.m3u8)</option>
+                            <option value="flv">FLV</option>
+                            <option value="mp4">MP4</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Camera 2 Config -->
+                <div class="stream-config" data-camera="2">
+                    <label><i class="fas fa-drone"></i> طائرة #2 - القطاع الشمالي</label>
+                    <div class="stream-config-row">
+                        <input type="text" placeholder="http://localhost:8080/hls/stream2.m3u8" />
+                        <select class="stream-type-select">
+                            <option value="auto">تلقائي</option>
+                            <option value="hls">HLS (.m3u8)</option>
+                            <option value="flv">FLV</option>
+                            <option value="mp4">MP4</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Camera 3 Config -->
+                <div class="stream-config" data-camera="3">
+                    <label><i class="fas fa-drone"></i> طائرة #4 - القطاع الغربي</label>
+                    <div class="stream-config-row">
+                        <input type="text" placeholder="http://localhost:8080/hls/stream3.m3u8" />
+                        <select class="stream-type-select">
+                            <option value="auto">تلقائي</option>
+                            <option value="hls">HLS (.m3u8)</option>
+                            <option value="flv">FLV</option>
+                            <option value="mp4">MP4</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Camera 4 Config -->
+                <div class="stream-config" data-camera="4">
+                    <label><i class="fas fa-drone"></i> طائرة #6 - القطاع الجنوبي</label>
+                    <div class="stream-config-row">
+                        <input type="text" placeholder="http://localhost:8080/hls/stream4.m3u8" />
+                        <select class="stream-type-select">
+                            <option value="auto">تلقائي</option>
+                            <option value="hls">HLS (.m3u8)</option>
+                            <option value="flv">FLV</option>
+                            <option value="mp4">MP4</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Test Streams -->
+                <div class="test-streams">
+                    <div class="test-streams-title">
+                        <i class="fas fa-flask"></i> روابط بث للاختبار
+                    </div>
+                    <div class="test-stream-item">
+                        <span class="test-stream-url">https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8</span>
+                        <button class="test-stream-copy"
+                            data-url="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8">نسخ</button>
+                    </div>
+                    <div class="test-stream-item">
+                        <span class="test-stream-url">https://cph-p2p-msl.akamaized.net/hls/live/.../master.m3u8</span>
+                        <button class="test-stream-copy"
+                            data-url="https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8">نسخ</button>
+                    </div>
+                </div>
+            </div>
+            <div class="stream-modal-footer">
+                <button class="btn-disconnect-all" id="disconnectAllStreams">
+                    <i class="fas fa-unlink"></i> قطع الكل
+                </button>
+                <button class="btn-save-config" id="saveStreamConfig">
+                    <i class="fas fa-save"></i> حفظ الإعدادات
+                </button>
+                <button class="btn-connect-all" id="connectAllStreams">
+                    <i class="fas fa-play"></i> اتصال بالكل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Video Modal -->
+    <div class="upload-modal" id="uploadVideoModal">
+        <div class="upload-modal-content">
+            <div class="upload-modal-header">
+                <h3><i class="fas fa-file-upload"></i> رفع مقطع فيديو</h3>
+                <button class="stream-modal-close" id="closeUploadModal">&times;</button>
+            </div>
+            <div class="upload-modal-body">
+                <!-- Upload Zone -->
+                <label for="fileUpload" class="upload-zone" id="dropZone">
+                    <i class="fas fa-file-video"></i>
+                    <p>اسحب وأفلت ملف الفيديو هنا أو انقر للاختيار</p>
+                    <span>صيغ مدعومة: MP4, MOV, AVI, MKV - الحد الأقصى: 500 ميجابايت</span>
+                </label>
+                <input type="file" id="fileUpload" accept="video/*">
+
+                <!-- Video Preview -->
+                <div class="upload-preview" id="uploadPreview">
+                    <video class="preview-video" id="previewVideoModal" controls></video>
+                    <div class="file-info">
+                        <div class="file-info-row">
+                            <span class="file-info-label">اسم الملف:</span>
+                            <span class="file-info-value" id="fileNameModal">video.mp4</span>
+                        </div>
+                        <div class="file-info-row">
+                            <span class="file-info-label">حجم الملف:</span>
+                            <span class="file-info-value" id="fileSizeModal">2.5 ميجابايت</span>
+                        </div>
+                        <div class="file-info-row">
+                            <span class="file-info-label">نوع الملف:</span>
+                            <span class="file-info-value" id="fileType">video/mp4</span>
+                        </div>
+                        <div class="file-info-row">
+                            <span class="file-info-label">المدة:</span>
+                            <span class="file-info-value" id="fileDuration">00:00:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Progress -->
+                <div class="upload-progress" id="uploadProgressModal">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBarModal"></div>
+                    </div>
+                    <div class="progress-status">
+                        <span id="progressPercent">0%</span>
+                        <span id="progressSize">0 KB / 0 KB</span>
+                    </div>
+                </div>
+
+                <!-- Upload Complete -->
+                <div class="upload-complete" id="uploadComplete">
+                    <i class="fas fa-check-circle"></i>
+                    <p>تم رفع الملف بنجاح!</p>
+                    <span>جاري تحليل الملف ومعالجته...</span>
+                </div>
+
+                <!-- Upload Error -->
+                <div class="upload-error" id="uploadError">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>حدث خطأ أثناء الرفع!</p>
+                    <span id="errorMessage">يرجى المحاولة مرة أخرى.</span>
+                </div>
+
+                <!-- Upload Actions -->
+                <div class="upload-actions">
+                    <button class="cancel-upload-btn" id="cancelUpload">
+                        <i class="fas fa-times"></i> إلغاء
+                    </button>
+                    <button class="upload-btn" id="startUpload" disabled>
+                        <i class="fas fa-upload"></i> رفع الملف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الجافاسكربت الخاص بالتبويبات -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // إضافة مستمعي الأحداث للتبويبات
+            document.querySelectorAll('.app-tab').forEach(tab => {
+                tab.addEventListener('click', function () {
+                    // إزالة الفئة النشطة من جميع التبويبات
+                    document.querySelectorAll('.app-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    // إضافة الفئة النشطة للتبويب الذي تم النقر عليه
+                    this.classList.add('active');
+
+                    // إخفاء جميع محتويات التبويبات
+                    document.querySelectorAll('.app-tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+
+                    // إظهار محتوى التبويب المناسب
+                    const tabId = this.getAttribute('data-tab') + 'Tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        });
+    </script>
+
+    <!-- البث المباشر - الجافاسكربت -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // View toggle
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const grid = document.getElementById('videoGrid');
+                    grid.className = 'video-grid grid-' + this.dataset.grid;
+                });
+            });
+
+            // Video feed selection
+            document.querySelectorAll('.video-feed').forEach(feed => {
+                feed.addEventListener('click', function () {
+                    document.querySelectorAll('.video-feed').forEach(f => f.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Update camera list
+                    const cameraId = this.dataset.camera;
+                    document.querySelectorAll('.camera-item').forEach(item => {
+                        item.classList.toggle('active', item.dataset.camera === cameraId);
+                    });
+                });
+            });
+
+            // Camera item selection
+            document.querySelectorAll('.camera-item[data-camera]').forEach(item => {
+                item.addEventListener('click', function () {
+                    const cameraId = this.dataset.camera;
+                    if (!cameraId) return;
+
+                    document.querySelectorAll('.camera-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+
+                    document.querySelectorAll('.video-feed').forEach(feed => {
+                        feed.classList.toggle('active', feed.dataset.camera === cameraId);
+                    });
+                });
+            });
+
+            // Record button
+            let isRecording = false;
+            let recordingTimer = null;
+            let recordingSeconds = 0;
+
+            document.getElementById('recordBtn').addEventListener('click', function () {
+                isRecording = !isRecording;
+                this.classList.toggle('recording', isRecording);
+                document.getElementById('recordBtn2').classList.toggle('recording', isRecording);
+
+                const recordingList = document.getElementById('recordingList');
+
+                if (isRecording) {
+                    recordingSeconds = 0;
+                    recordingList.innerHTML = `
+                        <div class="recording-item">
+                            <div class="recording-info">
+                                <i class="fas fa-circle"></i>
+                                <span>جميع الكاميرات</span>
+                            </div>
+                            <div class="recording-time" id="recordingTime">00:00</div>
+                        </div>
+                    `;
+
+                    recordingTimer = setInterval(() => {
+                        recordingSeconds++;
+                        const mins = Math.floor(recordingSeconds / 60).toString().padStart(2, '0');
+                        const secs = (recordingSeconds % 60).toString().padStart(2, '0');
+                        document.getElementById('recordingTime').textContent = `${mins}:${secs}`;
+                    }, 1000);
+                } else {
+                    clearInterval(recordingTimer);
+                    recordingList.innerHTML = `
+                        <div class="recording-item">
+                            <div class="recording-info">
+                                <i class="fas fa-circle" style="animation: none; color: var(--success);"></i>
+                                <span>لا توجد تسجيلات نشطة</span>
+                            </div>
+                        </div>
+                    `;
+                    alert('تم حفظ التسجيل بنجاح');
+                }
+            });
+
+            // Duplicate record button
+            document.getElementById('recordBtn2').addEventListener('click', function () {
+                document.getElementById('recordBtn').click();
+            });
+
+            // Screenshot button
+            document.getElementById('screenshotBtn').addEventListener('click', function () {
+                alert('تم التقاط صورة من جميع الكاميرات');
+            });
+
+            // Duplicate screenshot button
+            document.getElementById('screenshotBtn2').addEventListener('click', function () {
+                document.getElementById('screenshotBtn').click();
+            });
+
+            // Fullscreen
+            document.getElementById('fullscreenBtn').addEventListener('click', function () {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                    this.innerHTML = '<i class="fas fa-compress"></i>';
+                    document.getElementById('fullscreenBtn2').innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    document.exitFullscreen();
+                    this.innerHTML = '<i class="fas fa-expand"></i>';
+                    document.getElementById('fullscreenBtn2').innerHTML = '<i class="fas fa-expand"></i>';
+                }
+            });
+
+            // Duplicate fullscreen button
+            document.getElementById('fullscreenBtn2').addEventListener('click', function () {
+                document.getElementById('fullscreenBtn').click();
+            });
+
+            // Individual video controls
+            document.querySelectorAll('.video-control-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const title = this.getAttribute('title');
+                    const feed = this.closest('.video-feed');
+                    const feedName = feed.querySelector('.video-info span').textContent;
+
+                    if (title === 'تسجيل') {
+                        this.classList.toggle('recording');
+                        alert(this.classList.contains('recording') ? `بدء تسجيل ${feedName}` : `إيقاف تسجيل ${feedName}`);
+                    } else if (title === 'لقطة') {
+                        alert(`تم التقاط صورة من ${feedName}`);
+                    } else if (title === 'ملء الشاشة') {
+                        feed.requestFullscreen();
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- Stream Settings Modal Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Stream Settings Modal Controls
+            const streamModal = document.getElementById('streamSettingsModal');
+            const streamSettingsBtn = document.getElementById('streamSettingsBtn');
+            const streamSettingsBtn2 = document.getElementById('streamSettingsBtn2');
+            const closeStreamModalBtn = document.getElementById('closeStreamModal');
+
+            // Open modal
+            streamSettingsBtn.addEventListener('click', function () {
+                streamModal.classList.add('show');
+                // Apply saved config to UI
+                if (window.streamManager) {
+                    window.streamManager.applyConfigToUI();
+                }
+            });
+
+            // Open modal from duplicate button
+            streamSettingsBtn2.addEventListener('click', function () {
+                streamSettingsBtn.click();
+            });
+
+            // Close modal
+            closeStreamModalBtn.addEventListener('click', function () {
+                streamModal.classList.remove('show');
+            });
+
+            // Close on overlay click
+            streamModal.addEventListener('click', function (e) {
+                if (e.target === streamModal) {
+                    streamModal.classList.remove('show');
+                }
+            });
+
+            // Save configuration
+            document.getElementById('saveStreamConfig').addEventListener('click', function () {
+                if (window.streamManager) {
+                    window.streamManager.saveConfig();
+                    alert('تم حفظ إعدادات البث بنجاح');
+                } else {
+                    alert('تم حفظ إعدادات البث بنجاح');
+                }
+            });
+
+            // Connect all streams
+            document.getElementById('connectAllStreams').addEventListener('click', async function () {
+                if (window.streamManager) {
+                    window.streamManager.saveConfig();
+                    await window.streamManager.connectAll();
+                    streamModal.classList.remove('show');
+                } else {
+                    connectAllCamerasSocketIO();
+                    streamModal.classList.remove('show');
+                }
+            });
+
+            // Disconnect all streams
+            document.getElementById('disconnectAllStreams').addEventListener('click', function () {
+                if (window.streamManager) {
+                    window.streamManager.disconnectAll();
+                } else {
+                    disconnectAllCamerasSocketIO();
+                }
+            });
+
+            // Copy test stream URL
+            document.querySelectorAll('.test-stream-copy').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const url = this.dataset.url;
+                    navigator.clipboard.writeText(url).then(() => {
+                        this.textContent = 'تم!';
+                        setTimeout(() => {
+                            this.textContent = 'نسخ';
+                        }, 1500);
+                    });
+                });
+            });
+
+            // Connect stream buttons in video placeholders
+            document.querySelectorAll('.connect-stream-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const cameraId = this.dataset.camera;
+                    const droneId = this.dataset.drone;
+
+                    // Start the stream
+                    startStreamSocketIO(droneId);
+
+                    // Update UI
+                    const videoFeed = this.closest('.video-feed');
+                    videoFeed.classList.add('streaming');
+
+                    // Hide stream status after a while
+                    setTimeout(() => {
+                        const statusElem = videoFeed.querySelector('.stream-status');
+                        if (statusElem) {
+                            statusElem.classList.remove('connecting');
+                            statusElem.classList.add('connected');
+                            statusElem.innerHTML = '<i class="fas fa-check-circle"></i><span>متصل</span>';
+
+                            // Hide status after 3 seconds
+                            setTimeout(() => {
+                                statusElem.style.display = 'none';
+                            }, 3000);
+                        }
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+
+    <!-- Upload Video Modal Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Upload Video Modal Controls
+            const uploadModal = document.getElementById('uploadVideoModal');
+            const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+            const uploadVideoBtn2 = document.getElementById('uploadVideoBtn2');
+            const closeUploadModalBtn = document.getElementById('closeUploadModal');
+            const fileUpload = document.getElementById('fileUpload');
+            const dropZone = document.getElementById('dropZone');
+            const uploadPreview = document.getElementById('uploadPreview');
+            const previewVideoModal = document.getElementById('previewVideoModal');
+            const fileNameModal = document.getElementById('fileNameModal');
+            const fileSizeModal = document.getElementById('fileSizeModal');
+            const fileType = document.getElementById('fileType');
+            const fileDuration = document.getElementById('fileDuration');
+            const uploadProgressModal = document.getElementById('uploadProgressModal');
+            const progressBarModal = document.getElementById('progressBarModal');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressSize = document.getElementById('progressSize');
+            const startUpload = document.getElementById('startUpload');
+            const cancelUpload = document.getElementById('cancelUpload');
+            const uploadComplete = document.getElementById('uploadComplete');
+            const uploadError = document.getElementById('uploadError');
+            const errorMessage = document.getElementById('errorMessage');
+
+            let selectedFile = null;
+
+            if (uploadVideoBtn) {
+                // Open upload modal
+                uploadVideoBtn.addEventListener('click', function () {
+                    uploadModal.classList.add('show');
+                    resetUploadForm();
+                });
+
+                // Open modal from duplicate button
+                if (uploadVideoBtn2) {
+                    uploadVideoBtn2.addEventListener('click', function () {
+                        uploadVideoBtn.click();
+                    });
+                }
+
+                // Close upload modal
+                if (closeUploadModalBtn) {
+                    closeUploadModalBtn.addEventListener('click', function () {
+                        uploadModal.classList.remove('show');
+                    });
+                }
+
+                // Close on overlay click
+                if (uploadModal) {
+                    uploadModal.addEventListener('click', function (e) {
+                        if (e.target === uploadModal) {
+                            uploadModal.classList.remove('show');
+                        }
+                    });
+                }
+            }
+
+            if (fileUpload) {
+                // File input change
+                fileUpload.addEventListener('change', function (e) {
+                    handleFileSelection(e.target.files[0]);
+                });
+            }
+
+            if (dropZone) {
+                // Drop Zone
+                dropZone.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    this.style.borderColor = 'var(--accent)';
+                    this.style.backgroundColor = 'var(--hover)';
+                });
+
+                dropZone.addEventListener('dragleave', function (e) {
+                    e.preventDefault();
+                    this.style.borderColor = 'var(--border)';
+                    this.style.backgroundColor = 'rgba(15, 23, 42, 0.5)';
+                });
+
+                dropZone.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    this.style.borderColor = 'var(--border)';
+                    this.style.backgroundColor = 'rgba(15, 23, 42, 0.5)';
+
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        handleFileSelection(e.dataTransfer.files[0]);
+                    }
+                });
+            }
+
+            // File Selection Handler
+            function handleFileSelection(file) {
+                if (!file) return;
+
+                // Check if it's a video file
+                if (!file.type.startsWith('video/')) {
+                    showUploadError('يرجى اختيار ملف فيديو صالح.');
+                    return;
+                }
+
+                // Check file size (500MB limit)
+                if (file.size > 500 * 1024 * 1024) {
+                    showUploadError('حجم الملف كبير جدًا. الحد الأقصى هو 500 ميجابايت.');
+                    return;
+                }
+
+                selectedFile = file;
+
+                // Update file info
+                if (fileNameModal) fileNameModal.textContent = file.name;
+                if (fileSizeModal) fileSizeModal.textContent = formatFileSize(file.size);
+                if (fileType) fileType.textContent = file.type;
+
+                // Create object URL for preview
+                const videoURL = URL.createObjectURL(file);
+                if (previewVideoModal) {
+                    previewVideoModal.src = videoURL;
+
+                    // Get video duration
+                    previewVideoModal.onloadedmetadata = function () {
+                        if (fileDuration) fileDuration.textContent = formatDuration(previewVideoModal.duration);
+                    };
+                }
+
+                // Show preview and enable upload button
+                if (uploadPreview) uploadPreview.classList.add('active');
+                if (startUpload) startUpload.disabled = false;
+
+                // Hide error if visible
+                if (uploadError) uploadError.classList.remove('active');
+            }
+
+            if (startUpload) {
+                // Start Upload
+                startUpload.addEventListener('click', function () {
+                    if (!selectedFile) return;
+
+                    // Show progress
+                    if (uploadProgressModal) uploadProgressModal.classList.add('active');
+                    this.disabled = true;
+
+                    // Simulate upload
+                    simulateFileUpload(selectedFile);
+                });
+            }
+
+            if (cancelUpload) {
+                // Cancel Upload
+                cancelUpload.addEventListener('click', function () {
+                    resetUploadForm();
+                });
+            }
+
+            // Reset Upload Form
+            function resetUploadForm() {
+                selectedFile = null;
+                if (fileUpload) fileUpload.value = '';
+                if (previewVideoModal) previewVideoModal.src = '';
+                if (uploadPreview) uploadPreview.classList.remove('active');
+                if (uploadProgressModal) uploadProgressModal.classList.remove('active');
+                if (uploadComplete) uploadComplete.classList.remove('active');
+                if (uploadError) uploadError.classList.remove('active');
+                if (progressBarModal) progressBarModal.style.width = '0%';
+                if (progressPercent) progressPercent.textContent = '0%';
+                if (progressSize) progressSize.textContent = '0 KB / 0 KB';
+                if (startUpload) startUpload.disabled = true;
+            }
+
+            // Show Upload Error
+            function showUploadError(message) {
+                if (errorMessage) errorMessage.textContent = message || 'حدث خطأ أثناء الرفع. يرجى المحاولة مرة أخرى.';
+                if (uploadError) uploadError.classList.add('active');
+                if (uploadProgressModal) uploadProgressModal.classList.remove('active');
+                if (startUpload) startUpload.disabled = false;
+            }
+
+            // Simulate File Upload with progress
+            function simulateFileUpload(file) {
+                let progress = 0;
+                const totalSize = file.size;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 10;
+                    if (progress > 100) progress = 100;
+
+                    // Update progress UI
+                    const progressValue = Math.floor(progress);
+                    if (progressBarModal) progressBarModal.style.width = `${progressValue}%`;
+                    if (progressPercent) progressPercent.textContent = `${progressValue}%`;
+
+                    const uploadedSize = Math.floor((totalSize * progress) / 100);
+                    if (progressSize) progressSize.textContent = `${formatFileSize(uploadedSize)} / ${formatFileSize(totalSize)}`;
+
+                    if (progress === 100) {
+                        clearInterval(interval);
+
+                        // Complete upload after 1 second
+                        setTimeout(() => {
+                            if (uploadProgressModal) uploadProgressModal.classList.remove('active');
+                            if (uploadComplete) uploadComplete.classList.add('active');
+
+                            // Show "processing" message
+                            setTimeout(() => {
+                                // Simulate processing complete
+                                if (uploadComplete) {
+                                    uploadComplete.innerHTML = `
+                                        <i class="fas fa-check-circle"></i>
+                                        <p>تم رفع الملف ومعالجته بنجاح!</p>
+                                        <span>يمكنك استعراض التحليل الآن</span>
+                                    `;
+                                }
+
+                                // Close modal and display uploaded video in active feed
+                                setTimeout(() => {
+                                    showUploadedVideoInFeed(file);
+                                    if (uploadModal) uploadModal.classList.remove('show');
+                                    resetUploadForm();
+
+                                    // Switch to analysis tab
+                                    const analysisTab = document.querySelector('.app-tab[data-tab="analysis"]');
+                                    if (analysisTab) analysisTab.click();
+                                }, 1500);
+                            }, 3000);
+                        }, 1000);
+                    }
+                }, 200);
+            }
+
+            // Display uploaded video in active feed
+            function showUploadedVideoInFeed(file) {
+                const activeFeed = document.querySelector('.video-feed.active');
+                if (!activeFeed) return;
+
+                // Create object URL for the video
+                const videoURL = URL.createObjectURL(file);
+
+                // Update video player
+                const videoPlayer = activeFeed.querySelector('.video-player');
+                if (videoPlayer) {
+                    videoPlayer.src = videoURL;
+                    videoPlayer.controls = true;
+                    // تشغيل الفيديو مباشرة
+                    videoPlayer.style.display = 'block';
+                    videoPlayer.play();
+                }
+
+                // Hide placeholder
+                activeFeed.classList.add('streaming');
+                const placeholder = activeFeed.querySelector('.video-placeholder');
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                }
+
+                // Update status
+                const statusElem = activeFeed.querySelector('.stream-status');
+                if (statusElem) {
+                    statusElem.classList.remove('connecting');
+                    statusElem.classList.add('connected');
+                    statusElem.innerHTML = '<i class="fas fa-check-circle"></i><span>تم رفع الفيديو</span>';
+
+                    // Hide status after 3 seconds
+                    setTimeout(() => {
+                        statusElem.style.display = 'none';
+                    }, 3000);
+                }
+
+                // Show simulated detection after short delay
+                setTimeout(() => {
+                    const detections = activeFeed.querySelectorAll('.detection-box');
+                    detections.forEach(box => {
+                        box.style.display = 'block';
+                    });
+                }, 2000);
+            }
+
+            // Helper functions
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 بايت';
+                const k = 1024;
+                const sizes = ['بايت', 'كيلوبايت', 'ميجابايت', 'جيجابايت'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function formatDuration(seconds) {
+                const hrs = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+        });
+    </script>
+
+    <!-- Socket.IO Integration Script -->
+    <script>
+        // اتصال Socket.IO
+        let socket;
+        try {
+            socket = io();
+            console.log("تم إنشاء اتصال Socket.IO");
+        } catch (error) {
+            console.error("خطأ في اتصال Socket.IO:", error);
+        }
+
+        // تخزين البث النشط
+        const activeStreams = {};
+
+        // تعريف تنسيق العناصر عند تحميل المستند
+        document.addEventListener('DOMContentLoaded', function () {
+            if (socket) {
+                // استقبال إطارات البث
+                socket.on('stream_frame', function (data) {
+                    const { camera_id, frame, detections } = data;
+                    updateStreamView(camera_id, frame, detections);
+                });
+
+                // معالجة أخطاء البث
+                socket.on('stream_error', function (data) {
+                    const { stream_id, camera_id, message } = data;
+                    handleStreamError(camera_id, message);
+                });
+
+                // استجابة عند اكتمال الاتصال بـ Socket.IO
+                socket.on('connect', function () {
+                    console.log('تم الاتصال بـ Socket.IO بنجاح');
+                    // بدء البث لكل كاميرا تلقائيًا
+                    connectAllCamerasSocketIO();
+                });
+
+                // استجابة عند قطع الاتصال
+                socket.on('disconnect', function () {
+                    console.log('انقطع الاتصال بـ Socket.IO');
+                });
+
+                // استجابة عند بدء البث
+                socket.on('stream_started', function (data) {
+                    const { stream_id, camera_id } = data;
+                    console.log(`بدأ البث: ${camera_id} (${stream_id})`);
+
+                    activeStreams[stream_id] = {
+                        id: stream_id,
+                        camera_id: camera_id,
+                        status: 'streaming'
+                    };
+                });
+            }
+
+            // تحليل الفيديو - التبويبات
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.tab-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+
+                    // Add active class to clicked button
+                    this.classList.add('active');
+
+                    // Hide all tab panes
+                    document.querySelectorAll('.tab-pane').forEach(pane => {
+                        pane.classList.remove('active');
+                    });
+
+                    // Show the target tab pane
+                    const tabId = this.getAttribute('data-tab') + 'Tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // إخفاء قسم النتائج في البداية
+            const resultsSection = document.getElementById('resultsSection');
+            if (resultsSection) {
+                resultsSection.style.display = 'none';
+            }
+        });
+
+        // تحديث عرض البث
+        function updateStreamView(cameraId, frameData, detections) {
+            // العثور على عنصر الفيديو المناسب
+            const feed = document.querySelector(`.video-feed[data-drone="${cameraId}"]`);
+            if (!feed) return;
+
+            // تحديث حالة البث
+            feed.classList.add('streaming');
+
+            // إخفاء حالة الاتصال إذا كانت ظاهرة
+            const statusElem = feed.querySelector('.stream-status');
+            if (statusElem && statusElem.classList.contains('connecting')) {
+                statusElem.classList.remove('connecting');
+                statusElem.classList.add('connected');
+                statusElem.innerHTML = '<i class="fas fa-check-circle"></i><span>متصل</span>';
+
+                setTimeout(() => {
+                    statusElem.style.display = 'none';
+                }, 3000);
+            }
+
+            // تحديث الإطار
+            const imgElement = feed.querySelector('.stream-img');
+            if (imgElement) {
+                imgElement.style.display = 'block';
+                imgElement.src = `data:image/jpeg;base64,${frameData}`;
+            }
+
+            // تحديث إحصائيات الكاميرا
+            if (detections) {
+                updateCameraStats(cameraId, detections);
+                updateDetectionBoxes(cameraId, detections);
+            }
+        }
+
+        // تحديث إحصائيات الكاميرا
+        function updateCameraStats(cameraId, detections) {
+            const feed = document.querySelector(`.video-feed[data-drone="${cameraId}"]`);
+            if (!feed) return;
+
+            // تحديث المسافة وقوة الإشارة
+            const distanceElem = feed.querySelector('.distance-value');
+            const signalElem = feed.querySelector('.signal-value');
+            const batteryElem = feed.querySelector('.battery-value');
+
+            if (distanceElem && detections.distance) {
+                distanceElem.textContent = `${detections.distance}م`;
+            }
+
+            if (signalElem && detections.signal) {
+                const signalValue = detections.signal;
+                let signalText = 'ضعيف';
+
+                if (signalValue > 80) {
+                    signalText = 'قوي';
+                } else if (signalValue > 60) {
+                    signalText = 'متوسط';
+                }
+
+                signalElem.textContent = signalText;
+            }
+        }
+
+        // تحديث صناديق الكشف
+        function updateDetectionBoxes(cameraId, detections) {
+            const feed = document.querySelector(`.video-feed[data-drone="${cameraId}"]`);
+            if (!feed) return;
+
+            // تحديد صناديق الكشف بناءً على نوع الكاميرا
+            if (cameraId === 'طائرة #1' && detections.person_count > 0) {
+                // شخص مسلح - القطاع الشرقي
+                const detectionBox = feed.querySelector('.detection-box-person');
+                if (detectionBox) {
+                    detectionBox.style.display = 'block';
+
+                    // تحديث نسبة الثقة
+                    const labelElem = detectionBox.querySelector('.detection-label');
+                    if (labelElem && detections.confidence && detections.confidence.person) {
+                        labelElem.textContent = `شخص مسلح ${detections.confidence.person}%`;
+                    }
+                }
+
+                // إضافة تأثير التنبيه (وميض)
+                feed.classList.add('alert-active');
+            }
+            else if (cameraId === 'طائرة #2' && detections.bag_count > 0) {
+                // حقيبة مشبوهة - القطاع الشمالي
+                const detectionBox = feed.querySelector('.detection-box-bag');
+                if (detectionBox) {
+                    detectionBox.style.display = 'block';
+
+                    // تحديث نسبة الثقة
+                    const labelElem = detectionBox.querySelector('.detection-label');
+                    if (labelElem && detections.confidence && detections.confidence.bag) {
+                        labelElem.textContent = `حقيبة مشبوهة ${detections.confidence.bag}%`;
+                    }
+                }
+
+                // إضافة تأثير التنبيه (وميض)
+                feed.classList.add('alert-active');
+            }
+            else if (cameraId === 'طائرة #4' && detections.person_count > 0) {
+                // شخص - القطاع الغربي
+                const detectionBox1 = feed.querySelector('.detection-box-person1');
+                const detectionBox2 = feed.querySelector('.detection-box-person2');
+
+                if (detectionBox1) {
+                    detectionBox1.style.display = 'block';
+
+                    // تحديث نسبة الثقة
+                    const labelElem = detectionBox1.querySelector('.detection-label');
+                    if (labelElem && detections.confidence && detections.confidence.person) {
+                        labelElem.textContent = `شخص ${detections.confidence.person}%`;
+                    }
+                }
+
+                // عرض شخصين إذا كان عدد الأشخاص > 1
+                if (detectionBox2 && detections.person_count > 1) {
+                    detectionBox2.style.display = 'block';
+                }
+            }
+            else if (cameraId === 'طائرة #6') {
+                // لا يوجد كشف - القطاع الجنوبي
+                // يمكن تنفيذ أي منطق إضافي هنا
+            }
+        }
+
+        // معالجة أخطاء البث
+        function handleStreamError(cameraId, errorMessage) {
+            const feed = document.querySelector(`.video-feed[data-drone="${cameraId}"]`);
+            if (!feed) return;
+
+            // تحديث حالة البث
+            const statusElem = feed.querySelector('.stream-status');
+            if (statusElem) {
+                statusElem.classList.remove('connecting', 'connected');
+                statusElem.classList.add('error');
+                statusElem.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>${errorMessage}</span>`;
+            }
+
+            console.error(`خطأ في بث ${cameraId}: ${errorMessage}`);
+        }
+
+        // بدء بث واحد
+        function startStreamSocketIO(cameraId) {
+            if (!socket) {
+                simulateStreamConnection(cameraId);
+                return;
+            }
+
+            fetch('/api/start-stream', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ camera_id: cameraId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(`استجابة بدء البث للكاميرا ${cameraId}:`, data);
+                })
+                .catch(error => {
+                    console.error(`خطأ في بدء البث للكاميرا ${cameraId}:`, error);
+                    handleStreamError(cameraId, "خطأ في الاتصال بالخادم");
+                    simulateStreamConnection(cameraId);
+                });
+        }
+
+        // محاكاة اتصال البث (في حالة عدم وجود Socket.IO)
+        function simulateStreamConnection(cameraId) {
+            const feed = document.querySelector(`.video-feed[data-drone="${cameraId}"]`);
+            if (!feed) return;
+
+            // تحديث واجهة المستخدم
+            feed.classList.add('streaming');
+
+            // تحديث حالة الاتصال
+            const statusElem = feed.querySelector('.stream-status');
+            if (statusElem) {
+                statusElem.style.display = 'flex';
+                statusElem.classList.remove('disconnected', 'error');
+                statusElem.classList.add('connecting');
+                statusElem.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جارِ الاتصال...</span>';
+
+                // تغيير إلى "متصل" بعد 2 ثانية
+                setTimeout(() => {
+                    statusElem.classList.remove('connecting');
+                    statusElem.classList.add('connected');
+                    statusElem.innerHTML = '<i class="fas fa-check-circle"></i><span>متصل</span>';
+
+                    // إخفاء حالة الاتصال بعد 3 ثوانِ
+                    setTimeout(() => {
+                        statusElem.style.display = 'none';
+                    }, 3000);
+
+                    // عرض الكشف بعد 4 ثواني (في حالة القطاع الشرقي)
+                    if (cameraId === 'طائرة #1') {
+                        setTimeout(() => {
+                            const detectionBox = feed.querySelector('.detection-box-person');
+                            if (detectionBox) {
+                                detectionBox.style.display = 'block';
+                            }
+                        }, 4000);
+                    }
+
+                    // عرض الكشف بعد 6 ثواني (في حالة القطاع الشمالي)
+                    if (cameraId === 'طائرة #2') {
+                        setTimeout(() => {
+                            const detectionBox = feed.querySelector('.detection-box-bag');
+                            if (detectionBox) {
+                                detectionBox.style.display = 'block';
+                            }
+                        }, 6000);
+                    }
+
+                    // عرض الكشف بعد 8 ثواني (في حالة القطاع الغربي)
+                    if (cameraId === 'طائرة #4') {
+                        setTimeout(() => {
+                            const detectionBox1 = feed.querySelector('.detection-box-person1');
+                            const detectionBox2 = feed.querySelector('.detection-box-person2');
+                            if (detectionBox1) {
+                                detectionBox1.style.display = 'block';
+                            }
+                            if (detectionBox2) {
+                                setTimeout(() => {
+                                    detectionBox2.style.display = 'block';
+                                }, 2000);
+                            }
+                        }, 8000);
+                    }
+                }, 2000);
+            }
+        }
+
+        // إيقاف بث واحد
+        function stopStreamSocketIO(cameraId) {
+            // العثور على معرف البث
+            let streamId = null;
+            for (const id in activeStreams) {
+                if (activeStreams[id].camera_id === cameraId) {
+                    streamId = id;
+                    break;
+                }
+            }
+
+            if (!streamId && !socket) {
+                simulateStreamDisconnection(cameraId);
+                return;
+            }
+
+            if (!socket) {
+                simulateStreamDisconnection(cameraId);
+                return;
+            }
+
+            fetch('/api/stop-stream', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ stream_id: streamId })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(`استجابة إيقاف البث للكاميرا ${cameraId}:`, data);
+                    simulateStreamDisconnection(cameraId);
+                })
+                .catch(error => {
+                    console.error(`خطأ في إيقاف البث للكاميرا ${cameraId}:`, error);
+                    simulateStreamDisconnection(cameraId);
+                });
+        }
+
+        // محاكاة قطع اتصال البث
+        function simulateStreamDisconnection(cameraId) {
+            const feed = document.querySelector(`.video-feed[data-drone="${cameraId}"]`);
+            if (!feed) return;
+
+            feed.classList.remove('streaming', 'alert-active');
+
+            // إخفاء صناديق الكشف
+            feed.querySelectorAll('.detection-box').forEach(box => {
+                box.style.display = 'none';
+            });
+
+            // إعادة تعيين حالة الاتصال
+            const statusElem = feed.querySelector('.stream-status');
+            if (statusElem) {
+                statusElem.style.display = 'flex';
+                statusElem.classList.remove('connected', 'error');
+                statusElem.classList.add('disconnected');
+                statusElem.innerHTML = '<i class="fas fa-unlink"></i><span>غير متصل</span>';
+            }
+
+            // إخفاء الإطار
+            const imgElement = feed.querySelector('.stream-img');
+            if (imgElement) {
+                imgElement.style.display = 'none';
+            }
+
+            // إظهار العنصر الاحتياطي
+            const placeholder = feed.querySelector('.video-placeholder');
+            if (placeholder) {
+                placeholder.style.display = 'flex';
+            }
+        }
+
+        // بدء بث لجميع الكاميرات
+        function connectAllCamerasSocketIO() {
+            const cameras = ['طائرة #1', 'طائرة #2', 'طائرة #4', 'طائرة #6'];
+            cameras.forEach(cameraId => {
+                startStreamSocketIO(cameraId);
+            });
+        }
+
+        // إيقاف بث جميع الكاميرات
+        function disconnectAllCamerasSocketIO() {
+            const cameras = ['طائرة #1', 'طائرة #2', 'طائرة #4', 'طائرة #6'];
+            cameras.forEach(cameraId => {
+                stopStreamSocketIO(cameraId);
+            });
+        }
+    </script>
+
+    <!-- تحليل الفيديو - الجافاسكربت -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // DOM elements
+            const videoFileInput = document.getElementById('videoFile');
+            const previewVideo = document.getElementById('previewVideo');
+            const previewContainer = document.getElementById('previewContainer');
+            const previewInfo = document.getElementById('previewInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const progressSection = document.getElementById('progressSection');
+            const progressBar = document.getElementById('progressBar');
+            const progressInfo = document.getElementById('progressInfo');
+            const resultsSection = document.getElementById('resultsSection');
+            const resultVideo = document.getElementById('resultVideo');
+            const detectionsList = document.getElementById('detectionsList');
+            const statsGrid = document.getElementById('statsGrid');
+            const tasksContainer = document.getElementById('tasksContainer');
+            const activeCount = document.getElementById('activeCount');
+
+            // Format file size
+            function formatFileSize(bytes) {
+                if (bytes < 1024) {
+                    return bytes + ' bytes';
+                } else if (bytes < 1024 * 1024) {
+                    return (bytes / 1024).toFixed(2) + ' KB';
+                } else if (bytes < 1024 * 1024 * 1024) {
+                    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+                } else {
+                    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+                }
+            }
+
+            // Video file input change handler
+            if (videoFileInput) {
+                videoFileInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const fileURL = URL.createObjectURL(file);
+                        previewVideo.src = fileURL;
+                        fileName.textContent = file.name;
+                        fileSize.textContent = formatFileSize(file.size);
+                        previewContainer.style.display = 'flex';
+                        uploadBtn.disabled = false;
+                    }
+                });
+            }
+
+            // Upload button click handler
+            if (uploadBtn) {
+                uploadBtn.addEventListener('click', function () {
+                    const file = videoFileInput.files[0];
+                    if (!file) return;
+
+                    // Show progress section
+                    progressSection.style.display = 'block';
+                    uploadBtn.disabled = true;
+
+                    // Simulate API request with progress
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += 5;
+                        if (progress > 100) {
+                            clearInterval(interval);
+                            progress = 100;
+
+                            // Hide progress section after 1 second
+                            setTimeout(() => {
+                                progressSection.style.display = 'none';
+
+                                // إضافة الوظيفة الجديدة - عرض الفيديو في شاشة طائرة #1
+                                displayVideoInDrone1(file);
+
+                                showResults({
+                                    id: 'task_' + Date.now(),
+                                    filename: file.name,
+                                    output_path: URL.createObjectURL(file),
+                                    thumbnail: URL.createObjectURL(file),
+                                    stats: {
+                                        persons: { unique: 3, total: 5 },
+                                        weapons: { unique: 1, total: 1 },
+                                        bags: { unique: 2, total: 2 },
+                                        no_mask: 1,
+                                        mask: 2,
+                                        duration: 65.3,
+                                        frames: 1960,
+                                        fps: 30.2
+                                    },
+                                    captures: [
+                                        {
+                                            type: 'Weapon',
+                                            path: '#',
+                                            timestamp: '00:15:32',
+                                            confidence: 92
+                                        },
+                                        {
+                                            type: 'NoMask',
+                                            path: '#',
+                                            timestamp: '00:23:15',
+                                            confidence: 88
+                                        }
+                                    ]
+                                });
+                                addToTasksList({
+                                    id: 'task_' + Date.now(),
+                                    filename: file.name,
+                                    output_path: URL.createObjectURL(file),
+                                    thumbnail: URL.createObjectURL(file),
+                                    stats: {
+                                        persons: { unique: 3, total: 5 },
+                                        weapons: { unique: 1, total: 1 },
+                                        bags: { unique: 2, total: 2 },
+                                        no_mask: 1,
+                                        mask: 2,
+                                        duration: 65.3,
+                                        frames: 1960,
+                                        fps: 30.2
+                                    }
+                                });
+                                uploadBtn.disabled = false;
+                                // Reset form
+                                videoFileInput.value = '';
+                                previewContainer.style.display = 'none';
+                            }, 1000);
+                        }
+
+                        // Update progress UI
+                        progressBar.style.width = `${progress}%`;
+                        progressInfo.textContent = `${progress}%`;
+                    }, 200);
+                });
+            }
+
+            // وظيفة عرض الفيديو في شاشة طائرة #1
+            function displayVideoInDrone1(file) {
+                // الحصول على الطائرة #1
+                const drone1Feed = document.querySelector('.video-feed[data-drone="طائرة #1"]');
+
+                if (!drone1Feed) return;
+
+                // إنشاء عنوان URL للفيديو
+                const videoURL = URL.createObjectURL(file);
+
+                // تحديث مشغل الفيديو
+                const videoPlayer = drone1Feed.querySelector('.video-player');
+                if (videoPlayer) {
+                    videoPlayer.src = videoURL;
+                    videoPlayer.controls = false;
+                    videoPlayer.style.display = 'block';
+                    videoPlayer.autoplay = true;
+                    videoPlayer.loop = true;
+                    videoPlayer.muted = true;
+                    videoPlayer.play().catch(e => console.error("فشل في تشغيل الفيديو:", e));
+                }
+
+                // إخفاء العناصر الاحتياطية
+                const placeholder = drone1Feed.querySelector('.video-placeholder');
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                }
+
+                // إضافة صنف البث إلى الطائرة
+                drone1Feed.classList.add('streaming');
+
+                // تحديث حالة الاتصال
+                const statusElem = drone1Feed.querySelector('.stream-status');
+                if (statusElem) {
+                    statusElem.classList.remove('connecting', 'error');
+                    statusElem.classList.add('connected');
+                    statusElem.innerHTML = '<i class="fas fa-check-circle"></i><span>تم رفع الفيديو</span>';
+
+                    // إخفاء الحالة بعد 3 ثواني
+                    setTimeout(() => {
+                        statusElem.style.display = 'none';
+                    }, 3000);
+                }
+
+                // إظهار صناديق الكشف بعد فترة قصيرة
+                setTimeout(() => {
+                    const detectionBox = drone1Feed.querySelector('.detection-box-person');
+                    if (detectionBox) {
+                        detectionBox.style.display = 'block';
+                    }
+                }, 2000);
+
+                // التبديل إلى تبويب البث المباشر
+                const liveTab = document.querySelector('.app-tab[data-tab="live"]');
+                if (liveTab) {
+                    liveTab.click();
+                }
+            }
+
+            // Show results
+            function showResults(data) {
+                if (!resultsSection) return;
+
+                resultsSection.style.display = 'block';
+
+                // Set video source
+                if (resultVideo) resultVideo.src = data.output_path;
+
+                // Clear previous data
+                if (detectionsList) detectionsList.innerHTML = '';
+                if (statsGrid) statsGrid.innerHTML = '';
+
+                // Add detections
+                if (detectionsList && data.captures && data.captures.length > 0) {
+                    data.captures.forEach(capture => {
+                        const iconClass = capture.type === 'NoMask' ? 'nomask-icon' : 'weapon-icon';
+                        const iconSymbol = capture.type === 'NoMask' ? 'bi-mask' : 'bi-exclamation-triangle';
+
+                        detectionsList.innerHTML += `
+                            <div class="detection-item" onclick="window.open('${capture.path}', '_blank')">
+                                <div class="detection-icon ${iconClass}">
+                                    <i class="bi ${iconSymbol}"></i>
+                                </div>
+                                <div class="detection-info">
+                                    <div class="detection-title">${capture.type === 'NoMask' ? 'شخص بدون كمامة' : 'سلاح: ' + capture.type}</div>
+                                    <div class="detection-meta">
+                                        <div class="detection-time">
+                                            <i class="bi bi-clock"></i> ${capture.timestamp}
+                                        </div>
+                                        <div class="detection-confidence">
+                                            <i class="bi bi-shield-check"></i> ${capture.confidence}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else if (detectionsList) {
+                    detectionsList.innerHTML = '<div style="padding: 15px; text-align: center; color: rgba(241, 245, 249, 0.7);">لم يتم رصد أي تهديدات</div>';
+                }
+
+                // Add stats
+                if (statsGrid && data.stats) {
+                    const stats = data.stats;
+
+                    // Format duration
+                    const minutes = Math.floor(stats.duration / 60);
+                    const seconds = Math.floor(stats.duration % 60);
+                    const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                    statsGrid.innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.persons.unique}</div>
+                            <div class="stat-label">أشخاص</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.weapons.unique}</div>
+                            <div class="stat-label">أسلحة</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.bags.unique}</div>
+                            <div class="stat-label">حقائب</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.no_mask}</div>
+                            <div class="stat-label">بدون كمامة</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${formattedDuration}</div>
+                            <div class="stat-label">مدة الفيديو</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.frames}</div>
+                            <div class="stat-label">عدد الإطارات</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.fps.toFixed(1)}</div>
+                            <div class="stat-label">معدل التحليل FPS</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.mask}</div>
+                            <div class="stat-label">مع كمامة</div>
+                        </div>
+                    `;
+                }
+
+                // Scroll to results
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // Add to tasks list
+            function addToTasksList(data) {
+                if (!tasksContainer) return;
+
+                const task = document.createElement('div');
+                task.className = 'task-card';
+
+                const stats = data.stats;
+                const minutes = Math.floor(stats.duration / 60);
+                const seconds = Math.floor(stats.duration % 60);
+                const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                const time = new Date().toLocaleTimeString('ar-SA', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                task.innerHTML = `
+                    <div class="task-header">
+                        <div>${data.filename}</div>
+                        <div class="task-time">${time}</div>
+                    </div>
+                    <div class="task-body">
+                        <img src="${data.thumbnail}" class="task-thumbnail" alt="Thumbnail">
+                        <div class="task-info">
+                            <div class="task-stats">
+                                <div class="task-stat">
+                                    <i class="bi bi-people task-icon"></i>
+                                    <span class="task-value">${stats.persons.unique}</span>
+                                    <span class="task-label">أشخاص</span>
+                                </div>
+                                <div class="task-stat">
+                                    <i class="bi bi-exclamation-triangle task-icon"></i>
+                                    <span class="task-value">${stats.weapons.unique}</span>
+                                    <span class="task-label">أسلحة</span>
+                                </div>
+                                <div class="task-stat">
+                                    <i class="bi bi-handbag task-icon"></i>
+                                    <span class="task-value">${stats.bags.unique}</span>
+                                    <span class="task-label">حقائب</span>
+                                </div>
+                                <div class="task-stat">
+                                    <i class="bi bi-mask task-icon"></i>
+                                    <span class="task-value">${stats.no_mask}</span>
+                                    <span class="task-label">بدون كمامة</span>
+                                </div>
+                                <div class="task-stat">
+                                    <i class="bi bi-clock task-icon"></i>
+                                    <span class="task-value">${formattedDuration}</span>
+                                    <span class="task-label">المدة</span>
+                                </div>
+                            </div>
+                            <div class="task-actions">
+                                <button class="task-btn task-btn-primary" onclick="window.open('${data.output_path}', '_blank')">
+                                    <i class="bi bi-play"></i> مشاهدة الفيديو
+                                </button>
+                                <button class="task-btn task-btn-outline" onclick="showTaskResults('${data.id}')">
+                                    <i class="bi bi-eye"></i> عرض التحليل
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                tasksContainer.prepend(task);
+                updateActiveCount();
+            }
+
+            // Update active count
+            function updateActiveCount() {
+                if (!activeCount) return;
+                const taskCount = document.querySelectorAll('.task-card').length;
+                activeCount.textContent = taskCount;
+            }
+
+            // شرح لمكتبة البث المباشر والتحليل الفيديو (ملاحظة: تم تعريف showTaskResults كمتغير عام)
+            window.showTaskResults = function (taskId) {
+                // في بيئة حقيقية، ستقوم بجلب البيانات من الخادم
+                // هنا نقوم فقط بإعادة عرض النتائج الحالية للتبسيط
+                if (!resultVideo) return;
+
+                showResults({
+                    id: taskId,
+                    output_path: resultVideo.src,
+                    captures: [
+                        {
+                            type: 'Weapon',
+                            path: '#',
+                            timestamp: '00:15:32',
+                            confidence: 92
+                        },
+                        {
+                            type: 'NoMask',
+                            path: '#',
+                            timestamp: '00:23:15',
+                            confidence: 88
+                        }
+                    ],
+                    stats: {
+                        persons: { unique: 3, total: 5 },
+                        weapons: { unique: 1, total: 1 },
+                        bags: { unique: 2, total: 2 },
+                        no_mask: 1,
+                        mask: 2,
+                        duration: 65.3,
+                        frames: 1960,
+                        fps: 30.2
+                    }
+                });
+            };
+        });
+    </script>
+</body>
+
+</html>
